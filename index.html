@@ -355,12 +355,12 @@
             </div>
 
             <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
-                <button class="btn-block" :class="{active: accountTypeFilter === 'all'}" @click="accountTypeFilter = 'all'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'all' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">?券</button>
-                <button class="btn-block" :class="{active: accountTypeFilter === 'bank'}" @click="accountTypeFilter = 'bank'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'bank' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">? ?銵?/button>
-                <button class="btn-block" :class="{active: accountTypeFilter === 'wallet'}" @click="accountTypeFilter = 'wallet'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'wallet' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">? ?暸?</button>
-                <button class="btn-block" :class="{active: accountTypeFilter === 'epay'}" @click="accountTypeFilter = 'epay'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'epay' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">? ?餅</button>
-                <button class="btn-block" :class="{active: accountTypeFilter === 'credit'}" @click="accountTypeFilter = 'credit'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'credit' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">? 靽∠??/button>
-                <button class="btn-block" :class="{active: accountTypeFilter === 'iccard'}" @click="accountTypeFilter = 'iccard'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'iccard' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">?牧 蟡刻?</button>
+                <button class="btn-block" :class="{active: accountTypeFilter === 'all'}" @click="accountTypeFilter = 'all'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'all' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">全部</button>
+                <button class="btn-block" :class="{active: accountTypeFilter === 'bank'}" @click="accountTypeFilter = 'bank'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'bank' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">銀行</button>
+                <button class="btn-block" :class="{active: accountTypeFilter === 'wallet'}" @click="accountTypeFilter = 'wallet'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'wallet' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">現金</button>
+                <button class="btn-block" :class="{active: accountTypeFilter === 'epay'}" @click="accountTypeFilter = 'epay'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'epay' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">支付</button>
+                <button class="btn-block" :class="{active: accountTypeFilter === 'credit'}" @click="accountTypeFilter = 'credit'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'credit' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">信用卡</button>
+                <button class="btn-block" :class="{active: accountTypeFilter === 'iccard'}" @click="accountTypeFilter = 'iccard'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'iccard' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">票卡</button>
             </div>
             <div class="group-header">撣單?”</div>
             <div v-if="accounts.length === 0" class="empty-state" style="margin-top: 30px;">
@@ -664,10 +664,10 @@
             </div>
             
             <div class="form-group">
-                <label>?臭?/?亙董?孵? (?暸?/靽∠???餃??臭?/蝚砌??寞隞?</label>
+                <label>帳戶</label>
                 <select class="form-control" v-model="txForm.accountId">
-                    <option disabled value="">隢??甈暹??亙董?孵?</option>
-                    <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }} <span v-if="acc.type !== 'thirdparty'">(擗?: {{ formatCurrency(acc.balance) }})</span></option>
+                    <option disabled value="">請選擇帳戶</option>
+                    <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
                 </select>
             </div>
             <div class="form-group">
@@ -690,16 +690,16 @@
 
     <div class="modal-overlay" v-show="showAccModal">
         <div class="modal-content">
-            <div class="modal-header">{{ editAccId ? '蝺刻摩撣單/?∠?' : '?啣?撣單/?∠?' }}</div>
+            <div class="modal-header">{{ editAccId ? '編輯帳戶' : '新增帳戶' }}</div>
             <div class="form-group">
-                <label>?迂 (?臬翰???豢??芾?頛詨)</label>
+                <label>帳戶名稱</label>
                 <div class="quick-tags" style="margin-bottom: 8px;">
                     <span class="quick-tag" v-for="n in ['玉山銀行', '台新銀行', '國泰世華', '永豐銀行', '現金錢包', 'LinePay', '街口支付', '悠遊卡']" @click="accForm.name = n">{{ n }}</span>
                 </div>
-                <input type="text" class="form-control" v-model="accForm.name" placeholder="靘?嚗?圈?銵inePay???">
+                <input type="text" class="form-control" v-model="accForm.name" placeholder="例如 玉山銀行、LinePay、現金錢包">
             </div>
             <div class="form-group">
-                <label>憿?</label>
+                <label>帳戶類型</label>
                 <select class="form-control" v-model="accForm.type">
                     <option value="bank">銀行帳戶</option>
                     <option value="wallet">現金錢包</option>
@@ -710,12 +710,12 @@
                 </select>
             </div>
             <div class="form-group" v-if="accForm.type !== 'thirdparty'">
-                <label>?嗅?擗? (靽∠?∪‵撌脣??嚗???</label>
-                <div class="form-control-sim" @click="openGlobalNumpad(accForm.balance, v => accForm.balance = v)" placeholder="頛詨??">{{ accForm.balance !== '' ? accForm.balance : '' }}</div>
+                <label>目前餘額</label>
+                <div class="form-control-sim" @click="openGlobalNumpad(accForm.balance, v => accForm.balance = v)" placeholder="請輸入餘額">{{ accForm.balance !== '' ? accForm.balance : '' }}</div>
             </div>
             <div class="form-group" v-if="accForm.type === 'thirdparty'">
-                <label>?酉</label>
-                <div class="form-control-sim" style="color: var(--text-muted);">蝚砌??寞隞?隞?隞??嚗?函?擗?</div>
+                <label>備註</label>
+                <div class="form-control-sim" style="color: var(--text-muted);">第三方代管帳戶不計入可動用餘額</div>
             </div>
             
             <label class="checkbox-group" v-if="['bank', 'wallet', 'epay'].includes(accForm.type)">
@@ -726,25 +726,25 @@
                 <label>信用額度</label>
                 <div class="form-control-sim" @click="openGlobalNumpad(accForm.creditLimit, v => accForm.creditLimit = v)" placeholder="請輸入信用額度">{{ accForm.creditLimit !== '' ? accForm.creditLimit : '' }}</div>
             </div>
-            <div class="form-group" v-if="accForm.type === 'credit'"><div style="display:flex; gap:10px;"><div style="flex:1;"><label>蝯董??(1-31)</label><input type="number" class="form-control" v-model="accForm.closingDate"></div><div style="flex:1;"><label>蝜單狡??(1-31)</label><input type="number" class="form-control" v-model="accForm.dueDate"></div></div></div>
-            <div class="form-group" v-if="accForm.type === 'credit'"><label>?芸???像??(?詨‵ 1-31)</label><input type="number" class="form-control" v-model="accForm.autoPayDate"></div>
-            <div class="form-group" v-if="accForm.type === 'credit' && accForm.autoPayDate"><label>?芸???像靘?撣單</label><select class="form-control" v-model="accForm.autoPayAccount"><option value="">隢??/option><option v-for="a in accounts" :key="a.id" :value="a.id">{{ a.name }}</option></select></div>
+            <div class="form-group" v-if="accForm.type === 'credit'"><div style="display:flex; gap:10px;"><div style="flex:1;"><label>結帳日 (1-31)</label><input type="number" class="form-control" v-model="accForm.closingDate"></div><div style="flex:1;"><label>繳款日 (1-31)</label><input type="number" class="form-control" v-model="accForm.dueDate"></div></div></div>
+            <div class="form-group" v-if="accForm.type === 'credit'"><label>自動扣款日 (1-31)</label><input type="number" class="form-control" v-model="accForm.autoPayDate"></div>
+            <div class="form-group" v-if="accForm.type === 'credit' && accForm.autoPayDate"><label>自動扣款帳戶</label><select class="form-control" v-model="accForm.autoPayAccount"><option value="">請選擇帳戶</option><option v-for="a in accounts" :key="a.id" :value="a.id">{{ a.name }}</option></select></div>
             
-            <div class="btn-row"><button class="btn btn-cancel" @click="showAccModal = false">??</button><button class="btn btn-submit" @click="saveAccount">?脣?</button></div>
+            <div class="btn-row"><button class="btn btn-cancel" @click="showAccModal = false">取消</button><button class="btn btn-submit" @click="saveAccount">儲存</button></div>
         </div>
     </div>
 
     <div class="modal-overlay" v-show="showTransferModal">
         <div class="modal-content">
-            <div class="modal-header">鞈?瘚? (頧董/?狡)</div>
-            <div class="form-group"><label>頧撣單 (敺鋆⊥甈?</label><select class="form-control" v-model="transferForm.from"><option disabled value="">隢??/option><option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option></select></div>
-            <div class="form-group"><label>頧撣單 (?Ｗ??亙鋆?</label><select class="form-control" v-model="transferForm.to"><option disabled value="">隢??/option><option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option></select></div>
+            <div class="modal-header">新增轉帳</div>
+            <div class="form-group"><label>轉出帳戶</label><select class="form-control" v-model="transferForm.from"><option disabled value="">請選擇帳戶</option><option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option></select></div>
+            <div class="form-group"><label>轉入帳戶</label><select class="form-control" v-model="transferForm.to"><option disabled value="">請選擇帳戶</option><option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option></select></div>
             <div class="form-group">
-                <label>??</label>
-                <div class="form-control-sim" @click="openGlobalNumpad(transferForm.amount, v => transferForm.amount = v)" placeholder="頛詨頧董??">{{ transferForm.amount !== '' ? transferForm.amount : '' }}</div>
+                <label>金額</label>
+                <div class="form-control-sim" @click="openGlobalNumpad(transferForm.amount, v => transferForm.amount = v)" placeholder="請輸入轉帳金額">{{ transferForm.amount !== '' ? transferForm.amount : '' }}</div>
             </div>
-            <div class="form-group"><label>?交?</label><input type="date" class="form-control" v-model="transferForm.date"></div>
-            <div class="btn-row"><button class="btn btn-cancel" @click="showTransferModal = false">??</button><button class="btn btn-submit" @click="saveTransfer">蝣箄?</button></div>
+            <div class="form-group"><label>日期</label><input type="date" class="form-control" v-model="transferForm.date"></div>
+            <div class="btn-row"><button class="btn btn-cancel" @click="showTransferModal = false">取消</button><button class="btn btn-submit" @click="saveTransfer">儲存</button></div>
         </div>
     </div>
 
@@ -768,23 +768,23 @@
                 <div class="form-control-sim" @click="openGlobalNumpad(fixedForm.amount, v => fixedForm.amount = v)" placeholder="請輸入每期金額">{{ fixedForm.amount !== '' ? fixedForm.amount : '' }}</div>
             </div>
             
-            <label class="checkbox-group"><input type="checkbox" v-model="fixedForm.hasTotal" style="width: 18px; height: 18px;"> 閮?蝮賡??像鞎駁脣漲</label>
+            <label class="checkbox-group"><input type="checkbox" v-model="fixedForm.hasTotal" style="width: 18px; height: 18px;"> 追蹤總額與剩餘金額</label>
             <div v-show="fixedForm.hasTotal" class="form-group">
-                <label>?像蝮賡?</label>
-                <div class="form-control-sim" @click="openGlobalNumpad(fixedForm.totalAmount, v => fixedForm.totalAmount = v)" placeholder="閮剖?鞎豢狡???芰?蝮賡?">{{ fixedForm.totalAmount !== '' ? fixedForm.totalAmount : '' }}</div>
+                <label>總金額</label>
+                <div class="form-control-sim" @click="openGlobalNumpad(fixedForm.totalAmount, v => fixedForm.totalAmount = v)" placeholder="請輸入總金額">{{ fixedForm.totalAmount !== '' ? fixedForm.totalAmount : '' }}</div>
             </div>
             
-            <div class="form-group"><label>?芸???狡/蝜喟?撣單 (?詨‵)</label><select class="form-control" v-model="fixedForm.autoPayAccountId"><option value="">(????銝?甈?</option><option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option></select></div>
-            <div class="btn-row"><button class="btn btn-cancel" @click="showFixedModal = false">??</button><button class="btn btn-submit" @click="saveFixedExpense">?脣?</button></div>
+            <div class="form-group"><label>自動扣款帳戶（可選）</label><select class="form-control" v-model="fixedForm.autoPayAccountId"><option value="">不設定自動扣款</option><option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option></select></div>
+            <div class="btn-row"><button class="btn btn-cancel" @click="showFixedModal = false">取消</button><button class="btn btn-submit" @click="saveFixedExpense">儲存</button></div>
         </div>
     </div>
 
     <div class="modal-overlay" v-show="showPayFixedModal">
         <div class="modal-content">
-            <div class="modal-header">蝜喃漱撣喳?鞎餌</div>
-            <div class="form-group"><label>?豢??臭?撣單/靽∠??/label><select class="form-control" v-model="payFixedState.accountId"><option disabled value="">隢??/option><option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option></select></div>
-            <div class="form-group"><label>蝜喟??交?</label><input type="date" class="form-control" v-model="payFixedState.date"></div>
-            <div class="btn-row"><button class="btn btn-cancel" @click="showPayFixedModal = false">??</button><button class="btn btn-submit" @click="executePayFixed">蝣箄???狡</button></div>
+            <div class="modal-header">支付固定支出</div>
+            <div class="form-group"><label>付款帳戶</label><select class="form-control" v-model="payFixedState.accountId"><option disabled value="">請選擇帳戶</option><option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option></select></div>
+            <div class="form-group"><label>付款日期</label><input type="date" class="form-control" v-model="payFixedState.date"></div>
+            <div class="btn-row"><button class="btn btn-cancel" @click="showPayFixedModal = false">取消</button><button class="btn btn-submit" @click="executePayFixed">確認付款</button></div>
         </div>
     </div>
 
@@ -792,9 +792,9 @@
         <div class="modal-content">
             <div class="modal-header">新增投資紀錄</div>
             <div class="type-toggle">
-                <div class="type-toggle-btn" :class="{'active-expense': investForm.type === 'buy'}" @click="investForm.type = 'buy'">鞎瑕</div>
-                <div class="type-toggle-btn" :class="{'active-income': investForm.type === 'sell'}" @click="investForm.type = 'sell'">鞈?</div>
-                <div class="type-toggle-btn" :class="{'active-income': investForm.type === 'dividend'}" @click="investForm.type = 'dividend'">?</div>
+                <div class="type-toggle-btn" :class="{'active-expense': investForm.type === 'buy'}" @click="investForm.type = 'buy'">買入</div>
+                <div class="type-toggle-btn" :class="{'active-income': investForm.type === 'sell'}" @click="investForm.type = 'sell'">賣出</div>
+                <div class="type-toggle-btn" :class="{'active-income': investForm.type === 'dividend'}" @click="investForm.type = 'dividend'">股利</div>
             </div>
             <div class="form-group">
                 <label>投資標的名稱</label>
@@ -804,12 +804,12 @@
                 <input type="text" class="form-control" v-model="investForm.target" placeholder="例如 0050、台積電">
             </div>
             <div class="form-group">
-                <label>??</label>
-                <div class="form-control-sim" @click="openGlobalNumpad(investForm.amount, v => investForm.amount = v)" placeholder="頛詨????">{{ investForm.amount !== '' ? investForm.amount : '' }}</div>
+                <label>金額</label>
+                <div class="form-control-sim" @click="openGlobalNumpad(investForm.amount, v => investForm.amount = v)" placeholder="請輸入投資金額">{{ investForm.amount !== '' ? investForm.amount : '' }}</div>
             </div>
-            <div class="form-group"><label>?豢???銵?鈭文撣單</label><select class="form-control" v-model="investForm.accountId"><option disabled value="">隢??/option><option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }} (?舐: {{ formatCurrency(acc.balance) }})</option></select></div>
-            <div class="form-group"><label>?交?</label><input type="date" class="form-control" v-model="investForm.date"></div>
-            <div class="btn-row"><button class="btn btn-cancel" @click="showInvestModal = false">??</button><button class="btn btn-submit" @click="saveInvest">?脣?</button></div>
+            <div class="form-group"><label>扣款／入帳帳戶</label><select class="form-control" v-model="investForm.accountId"><option disabled value="">請選擇帳戶</option><option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }} (餘額: {{ formatCurrency(acc.balance) }})</option></select></div>
+            <div class="form-group"><label>日期</label><input type="date" class="form-control" v-model="investForm.date"></div>
+            <div class="btn-row"><button class="btn btn-cancel" @click="showInvestModal = false">取消</button><button class="btn btn-submit" @click="saveInvest">儲存</button></div>
         </div>
     </div>
 
