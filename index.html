@@ -426,6 +426,7 @@
     </div>
 
     <div v-show="currentPage === 'fixed'" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="header">
             <div class="header-top">
                 <div style="display: flex; gap: 15px; font-size: 22px; user-select: none;">
                     <span @click="isPrivacyMode = !isPrivacyMode" style="cursor:pointer; filter: grayscale(0.2);">{{ isPrivacyMode ? '🙈' : '👁️' }}</span>
