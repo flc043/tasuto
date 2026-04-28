@@ -1,4 +1,4 @@
-const CACHE_NAME = 'money-app-v4';
+const CACHE_NAME = 'money-app-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -56,7 +56,7 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => {
           if (isNavigation) {
-            return caches.match('./money.html');
+            return caches.match('./index.html');
           }
         });
     })
