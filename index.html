@@ -1434,7 +1434,7 @@
                             transactions.value.push({ id: Date.now() + i + Math.floor(Math.random()*1000), type, date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`, category: clean(row[4]), amount: Math.abs(rawAmount), accountId: accounts.value.length ? accounts.value[0].id : '', note: clean(row[5]) });
                             addedCount++;
                         }
-                        if (addedCount > 0) alert(`???臬 ${addedCount} 蝑);
+                        if (addedCount > 0) alert(`已匯入 ${addedCount} 筆`);
                     } catch (e) { alert('?臬?航炊'); }
                 };
                 const clearAllData = () => { if (prompt('隢撓??"delete" 靘Ⅱ隤?歹?') === 'delete') { transactions.value = []; accounts.value = []; fixedExpenses.value = []; investments.value = []; if (typeof localforage !== 'undefined') { localforage.setItem('v_transactions', []); localforage.setItem('v_accounts', []); localforage.setItem('v_fixedExpenses', []); localforage.setItem('v_investments', []); } alert('撌脫???); } };
@@ -1500,4 +1500,6 @@ isPrivacyMode, monthlyBudget, showExpenseAnalysis, assetAllocations, accountType
 </script>
 </body>
 </html>
+
+
 
