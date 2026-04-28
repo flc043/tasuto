@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://script.google.com https://script.googleusercontent.com data:; img-src 'self' data:; manifest-src 'self' data:; object-src 'none'; base-uri 'none';">
+    <title>個人記帳與資金管理</title>
+    <meta name="theme-color" content="#f5f6fa">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="記帳">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f7b731' rx='20'/%3E%3Ctext y='56' x='50' font-size='60' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%92%B0%3C/text%3E%3C/svg%3E">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='56' x='50' font-size='70' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%92%B0%3C/text%3E%3C/svg%3E">
+    <link rel="manifest" href="manifest.json">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #f39c12;
+            --primary-dark: #e67e22;
+            --danger: #e74c3c;
+            --success: #2ecc71;
+            --bg: #f5f6fa;
+            --card-bg: #ffffff;
+            --text-main: #2f3640;
+            --text-muted: #7f8fa6;
+            --border: #dcdde1;
+            
+            --tag-bg: #f1f2f6;
+            --tag-active-bg: #fef0d7;
+            --keyboard-bg: #e1e2e6;
+            --key-bg: #ffffff;
+            --key-press: #f1f2f6;
+            --input-bg: #f5f6fa;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'PingFang TC', 'Microsoft JhengHei', -apple-system, sans-serif; }
+        body { background-color: var(--bg); display: flex; justify-content: center; height: 100vh; height: 100dvh; overflow: hidden; }
+        [v-cloak] { display: none !important; }
+
+        #app {
+            width: 100%; max-width: 480px; height: 100%;
+            background-color: var(--bg); position: relative;
+            display: flex; flex-direction: column;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .header { background: var(--primary); color: white; padding: 20px; padding-bottom: 30px; border-radius: 0 0 20px 20px; }
+        .header-title { text-align: center; font-size: 18px; font-weight: bold; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.1); flex: 1; }
+        .month-selector { background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 6px 12px; border-radius: 20px; font-size: 16px; outline: none; font-weight: bold; }
+        .month-selector::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+
+        .summary-cards { display: flex; justify-content: space-between; background: var(--card-bg); border-radius: 12px; padding: 15px; margin: -20px 20px 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); position: relative; }
+        .summary-item { flex: 1; text-align: center; border-right: 1px solid var(--border); }
+        .summary-item:last-child { border-right: none; }
+        .summary-label { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
+        .summary-value { font-size: 16px; font-weight: bold; color: var(--text-main); }
+        .summary-value.income { color: var(--success); }
+        .summary-value.expense { color: var(--danger); }
+
+        .content-area { flex: 1; overflow-y: auto; padding: 10px 20px 80px 20px; }
+
+        .group-header { font-size: 13px; color: var(--text-muted); margin: 15px 0 8px 5px; font-weight: bold; }
+        .list-card { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .icon-circle { width: 42px; height: 42px; border-radius: 50%; background: #fef0d7; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 15px; color: var(--primary-dark); font-weight: bold; flex-shrink: 0; filter: saturate(0.7) brightness(0.9); }
+        
+        .item-details { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+        .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .item-footer { display: flex; justify-content: space-between; align-items: center; }
+        .item-title { font-size: 16px; color: var(--text-main); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-amount { font-size: 17px; font-weight: bold; white-space: nowrap; flex-shrink: 0; margin-left: 10px; }
+        .item-amount.income { color: var(--success); }
+        .item-amount.expense { color: var(--text-main); }
+        .item-subtitle { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+
+        .btn-group-sm { display: flex; gap: 6px; margin-left: 10px; flex-shrink: 0; }
+        .edit-btn, .delete-btn, .action-btn { border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold; }
+        .edit-btn { background: var(--tag-bg); color: #0984e3; }
+        .delete-btn { background: var(--tag-bg); color: var(--danger); }
+        .action-btn { background: var(--primary); color: white; }
+
+        .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--card-bg); display: flex; border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .nav-item { flex: 1; text-align: center; padding: 15px 0; color: var(--text-muted); font-size: 14px; cursor: pointer; transition: all 0.2s; }
+        .nav-item.active { color: var(--primary-dark); font-weight: bold; }
+
+        .fab { position: absolute; bottom: 85px; right: 25px; width: 56px; height: 56px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 4px 12px rgba(247, 183, 49, 0.5); border: none; cursor: pointer; z-index: 10; transition: transform 0.1s; }
+        .fab:active { transform: scale(0.95); }
+
+        .btn-block { display: block; width: 100%; padding: 14px; background: var(--card-bg); border: 2px dashed var(--primary); color: var(--primary-dark); font-size: 15px; font-weight: bold; border-radius: 10px; margin-bottom: 15px; cursor: pointer; text-align: center; transition: all 0.2s; }
+        .btn-block:active { background: var(--tag-active-bg); }
+
+        .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 100; display: flex; align-items: flex-end; backdrop-filter: blur(2px); }
+        .modal-content { background: var(--card-bg); width: 100%; border-radius: 20px 20px 0 0; padding: 25px 20px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        .modal-header { font-size: 18px; font-weight: bold; margin-bottom: 20px; text-align: center; color: var(--text-main); }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; font-weight: bold; }
+        .form-control { width: 100%; padding: 12px 15px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; background: var(--input-bg); color: var(--text-main); }
+        .form-control:focus { outline: none; border-color: var(--primary); background: var(--card-bg); box-shadow: 0 0 0 2px rgba(247,183,49,0.2); }
+        .form-control-sim { width: 100%; padding: 12px 15px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; background: var(--input-bg); color: var(--text-main); cursor: pointer; display: flex; align-items: center; min-height: 46px; }
+        .form-control-sim:empty::before { content: attr(placeholder); color: var(--text-muted); }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; font-size: 14px; margin-bottom: 15px; color: var(--text-main); font-weight: bold; }
+
+        .btn-row { display: flex; gap: 12px; margin-top: 25px; }
+        .btn { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; font-weight: bold; transition: opacity 0.2s; }
+        .btn:active { opacity: 0.8; }
+        .btn-cancel { background: var(--tag-bg); color: var(--text-muted); }
+        .btn-submit { background: var(--primary); color: white; }
+
+        .progress-bar-bg { width: 100%; height: 8px; background: var(--border); border-radius: 4px; margin-top: 8px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.3s ease; }
+        
+        .type-toggle { display: flex; gap: 10px; margin-bottom: 20px; background: var(--keyboard-bg); padding: 4px; border-radius: 10px; }
+        .type-toggle-btn { flex: 1; text-align: center; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; color: var(--text-muted); transition: all 0.2s; }
+        .type-toggle-btn.active-expense { background: var(--danger); color: white; box-shadow: 0 2px 5px rgba(235,59,90,0.3); }
+        .type-toggle-btn.active-income { background: var(--success); color: white; box-shadow: 0 2px 5px rgba(32,191,107,0.3); }
+        
+        .search-bar { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); padding: 10px 15px; border-radius: 20px; color: white; width: 100%; margin-top: 15px; font-size: 15px; outline: none; }
+        .search-bar::placeholder { color: rgba(255,255,255,0.7); }
+        .analysis-panel { background: var(--card-bg); border-radius: 12px; padding: 15px; margin: 0 20px 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .analysis-row { display: flex; align-items: center; margin-bottom: 10px; font-size: 13px; }
+        .analysis-label { width: 60px; color: var(--text-muted); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .analysis-bar-bg { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; margin: 0 10px; overflow: hidden; }
+        .analysis-bar-fill { height: 100%; background: var(--primary); border-radius: 4px; }
+        .analysis-amount { width: 75px; text-align: right; color: var(--text-main); font-weight: bold; }
+        
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .bell-icon { position: relative; font-size: 24px; cursor: pointer; color: white; }
+        .red-dot { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; border: 2px solid var(--primary); }
+
+        .empty-state { text-align: center; color: var(--text-muted); margin-top: 60px; font-size: 15px; }
+
+        .quick-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        .quick-tag { background: var(--tag-bg); padding: 6px 12px; border-radius: 15px; font-size: 13px; color: var(--text-main); cursor: pointer; font-weight: bold; border: 1px solid transparent; }
+        .quick-tag:active { filter: brightness(0.9); }
+        .quick-tag.selected { background: var(--tag-active-bg); color: var(--primary-dark); border-color: var(--primary); }
+
+        /* Numpad Classes */
+        .numpad-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .numpad-btn { background: var(--key-bg); border: none; border-radius: 8px; padding: 12px 0; font-size: 20px; font-weight: bold; color: var(--text-main); cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .numpad-btn:active { background: var(--key-press); }
+        .btn-c { background: #5c2c2c; color: #ff7675; }
+        .btn-del { background: var(--border); }
+    </style>
+</head>
+<body>
+
+<div id="app" v-cloak>
+    <div v-show="currentPage === 'home'" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="header">
+            <div class="header-top">
+                <div style="display: flex; gap: 15px; font-size: 22px; user-select: none;">
+                    <span @click="isPrivacyMode = !isPrivacyMode" style="cursor:pointer; filter: grayscale(0.2);">{{ isPrivacyMode ? '🙈' : '👁️' }}</span>
+                </div>
+                <div class="header-title">記帳明細</div>
+                <div class="bell-icon" @click="showNotifModal = true">
+                    🔔<div class="red-dot" v-if="unreadNotifs > 0"></div>
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <input type="month" class="month-selector" v-model="selectedMonth">
+            </div>
+            <input type="text" class="search-bar" v-model="searchQuery" placeholder="搜尋明細 (分類、備註)...">
+        </div>
+        <div class="summary-cards" style="flex-direction: column; gap: 15px;">
+            <div style="display: flex; justify-content: space-between;">
+                <div class="summary-item">
+                    <div class="summary-label">收入</div>
+                    <div class="summary-value income">{{ formatCurrency(monthlyIncome) }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">支出</div>
+                    <div class="summary-value expense">{{ formatCurrency(monthlyExpense) }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">結餘</div>
+                    <div class="summary-value">{{ formatCurrency(monthlyBalance) }}</div>
+                </div>
+            </div>
+            <div v-if="monthlyBudget > 0" style="padding-top: 10px; border-top: 1px dashed var(--border);">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; font-weight: bold;">
+                    <span>本月預算: {{ formatCurrency(monthlyBudget) }}</span>
+                    <span :class="{'expense': monthlyExpense > monthlyBudget}">
+                        {{ monthlyExpense >= monthlyBudget ? '超支 ' + formatCurrency(monthlyExpense - monthlyBudget) : '剩餘 ' + formatCurrency(monthlyBudget - monthlyExpense) }}
+                    </span>
+                </div>
+                <div class="progress-bar-bg" style="height: 10px; background: rgba(0,0,0,0.05); border-radius: 5px; margin-top: 0;">
+                    <div class="progress-bar-fill" :style="{ width: Math.min(100, (monthlyExpense / monthlyBudget * 100)) + '%', background: (monthlyExpense / monthlyBudget > 0.9) ? 'var(--danger)' : ((monthlyExpense / monthlyBudget > 0.7) ? 'var(--primary)' : 'var(--success)') }"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="group-header" style="display:flex; justify-content: space-between; align-items: center; padding-right: 20px; margin-top: 5px;">
+            <span>📌 固定支出 (訂閱/通話費)</span>
+            <span style="color: var(--primary); cursor: pointer;" @click="openAddFixed('subscription')">+ 新增</span>
+        </div>
+        <div class="quick-tags" style="margin: 0 20px 15px 20px;" v-if="subscriptions.length > 0">
+            <span class="quick-tag" v-for="sub in subscriptions" :key="sub.id" @click="openEditFixed(sub)" style="background: rgba(247, 183, 49, 0.1); border-color: var(--primary);">
+                {{ sub.name }} ({{ formatCurrency(sub.amount) }})
+            </span>
+        </div>
+        <div v-else style="margin: 0 20px 15px 20px; font-size: 13px; color: var(--text-muted);">尚未設定固定支出</div>
+
+        <div class="analysis-panel" v-if="expenseAnalysis.length > 0 && !searchQuery">
+            <div style="font-size: 14px; font-weight: bold; margin-bottom: 15px; color: var(--text-main);">本月支出分析 (Top 5)</div>
+            <div class="analysis-row" v-for="item in expenseAnalysis" :key="item.category">
+                <div class="analysis-label">{{ item.category }}</div>
+                <div class="analysis-bar-bg">
+                    <div class="analysis-bar-fill" :style="{ width: item.percentage + '%' }"></div>
+                </div>
+                <div class="analysis-amount">{{ formatCurrency(item.amount) }}</div>
+            </div>
+        </div>
+
+        <div class="content-area" style="padding-top: 0;">
+            <div v-if="Object.keys(groupedTransactions).length === 0" class="empty-state">
+                本月尚無任何明細紀錄
+            </div>
+            <div v-for="(txs, date) in groupedTransactions" :key="date">
+                <div class="group-header">{{ date }}</div>
+                <div class="list-card" v-for="tx in txs" :key="tx.id">
+                    <div class="icon-circle" :style="tx.type === 'transfer' ? 'background: #e3f2fd; color: #0984e3;' : ''">
+                        {{ tx.category.charAt(0) }}
+                    </div>
+                    <div class="item-details">
+                        <div class="item-header">
+                            <span class="item-title">{{ tx.category }}</span>
+                            <span class="item-amount" :class="tx.type === 'expense' ? 'expense' : (tx.type === 'income' ? 'income' : '')">
+                                {{ tx.type === 'expense' ? '-' : (tx.type === 'income' ? '+' : '') }} {{ formatCurrency(tx.amount) }}
+                            </span>
+                        </div>
+                        <div class="item-footer">
+                            <span class="item-subtitle">
+                                {{ getAccountName(tx.accountId) }} 
+                                <span v-if="tx.note">· {{ tx.note }}</span>
+                            </span>
+                            <div class="btn-group-sm">
+                                <button class="edit-btn" @click="openEditTxOrTransfer(tx)">編輯</button>
+                                <button class="delete-btn" @click="deleteTransaction(tx.id)">刪除</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="fab" @click="openAddTx">+</button>
+    </div>
+
+    <div v-show="currentPage === 'funds'" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="header">
+            <div class="header-top">
+                <div style="display: flex; gap: 15px; font-size: 22px; user-select: none;">
+                    <span @click="isPrivacyMode = !isPrivacyMode" style="cursor:pointer; filter: grayscale(0.2);">{{ isPrivacyMode ? '🙈' : '👁️' }}</span>
+                </div>
+                <div class="header-title">資金管理</div>
+                <div style="width:24px;"></div>
+            </div>
+            <div style="text-align: center; padding-top: 5px;">
+                <div style="font-size: 13px; opacity: 0.9; margin-bottom: 5px;">總資產</div>
+                <div style="font-size: 32px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">{{ formatCurrency(totalAssets) }}</div>
+            </div>
+            
+            <div v-if="assetAllocations && assetAllocations.length > 0" style="margin: 15px 20px 0 20px;">
+                <div style="display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,0.2);">
+                    <div v-for="alloc in assetAllocations" :key="alloc.name" :style="{ width: alloc.percentage + '%', background: alloc.color }" :title="alloc.name + ': ' + alloc.percentage + '%'"></div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; font-size: 12px; justify-content: center;">
+                    <div v-for="alloc in assetAllocations" :key="'leg-'+alloc.name" style="display: flex; align-items: center; gap: 4px;">
+                        <div :style="{ width: '8px', height: '8px', borderRadius: '50%', background: alloc.color }"></div>
+                        <span style="color: rgba(255,255,255,0.9); font-weight: bold;">{{ alloc.name }} {{ alloc.percentage }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content-area" style="padding-top: 25px;">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-block" @click="openAddAcc">+ 新增帳戶/卡片</button>
+                <button class="btn-block" @click="openAddTransfer" style="border: 2px solid var(--primary); background: transparent;">⇄ 資金流通</button>
+            </div>
+
+            <div class="group-header">帳戶列表</div>
+            <div v-if="accounts.length === 0" class="empty-state" style="margin-top: 30px;">
+                請先新增您的資金帳戶
+            </div>
+            <div class="list-card" v-for="acc in accounts" :key="acc.id">
+                <div class="icon-circle" :style="acc.type === 'credit' ? 'background: #fff0f3; color: var(--danger);' : 'background: #e3f2fd; color: #0984e3;'">
+                    {{ typeLabel[acc.type]?.[0] || '帳' }}
+                </div>
+                <div class="item-details">
+                    <div class="item-header">
+                        <span class="item-title">{{ acc.name }}</span>
+                        <span class="item-amount" :class="acc.type === 'credit' && acc.balance < 0 ? 'expense' : ''">
+                            {{ acc.type === 'credit' ? '已刷 ' + formatCurrency(Math.abs(acc.balance)) : formatCurrency(acc.balance) }}
+                        </span>
+                    </div>
+                    <div class="item-footer">
+                        <span class="item-subtitle">
+                            {{ typeLabel[acc.type] }}
+                            <span v-if="acc.type === 'credit' && acc.creditLimit"> · 額度 {{ formatCurrency(acc.creditLimit) }}</span>
+                            <span v-if="acc.isInvestAccount"> · 📈 投資帳戶</span>
+                        </span>
+                        <div class="btn-group-sm">
+                            <button class="edit-btn" @click="openEditAcc(acc)">編輯</button>
+                            <button class="delete-btn" @click="deleteAccount(acc.id)">刪除</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group-header" style="margin-top: 25px;">近期資金流通</div>
+            <div v-if="transferTransactions.length === 0" class="empty-state" style="margin-top: 20px;">
+                尚無資金流通紀錄
+            </div>
+            <div class="list-card" v-for="tx in transferTransactions" :key="tx.id">
+                <div class="icon-circle" style="background: #e3f2fd; color: #0984e3;">
+                    ⇄
+                </div>
+                <div class="item-details">
+                    <div class="item-header">
+                        <span class="item-title">{{ getAccountName(tx.accountId) }} → {{ getAccountName(tx.toAccountId) }}</span>
+                        <span class="item-amount" style="color: #0984e3;">
+                            {{ formatCurrency(tx.amount) }}
+                        </span>
+                    </div>
+                    <div class="item-footer">
+                        <span class="item-subtitle">
+                            {{ tx.date }} 
+                            <span v-if="tx.originalNote">· {{ tx.originalNote }}</span>
+                        </span>
+                        <div class="btn-group-sm">
+                            <button class="edit-btn" @click="openEditTxOrTransfer(tx)">編輯</button>
+                            <button class="delete-btn" @click="deleteTransaction(tx.id)">刪除</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div v-show="currentPage === 'fixed'" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="header">
+            <div class="header-top">
+                <div style="display: flex; gap: 15px; font-size: 22px; user-select: none;">
+                    <span @click="isPrivacyMode = !isPrivacyMode" style="cursor:pointer; filter: grayscale(0.2);">{{ isPrivacyMode ? '🙈' : '👁️' }}</span>
+                </div>
+                <div class="header-title">帳務管理 (貸款/保險)</div>
+                <div style="width:24px;"></div>
+            </div>
+        </div>
+        <div class="content-area" style="padding-top: 25px;">
+            <button class="btn-block" @click="openAddFixed('loan')">+ 新增貸款 / 保險</button>
+            <div v-if="loansAndInsurances.length === 0" class="empty-state">尚無設定任何帳務項目</div>
+            
+            <div class="list-card" v-for="item in loansAndInsurances" :key="item.id" style="flex-direction: column; align-items: stretch;">
+                <div style="display: flex; align-items: center;">
+                    <div class="icon-circle" style="background: #ffeff1; color: var(--danger);">{{ item.type === 'loan' ? '🏦' : (item.type === 'insurance' ? '🛡️' : '🔄') }}</div>
+                    <div class="item-details">
+                        <div class="item-header">
+                            <span class="item-title">{{ item.name }}</span>
+                            <span class="item-amount expense">{{ formatCurrency(item.amount) }} <span style="font-size: 12px; color: var(--text-muted);">/期</span></span>
+                        </div>
+                        <div class="item-footer">
+                            <span class="item-subtitle">
+                                {{ item.cycle === 'monthly' ? '每月 ' + item.deductionDate + ' 日' : '每年 ' + (item.deductionMonth || 1) + ' 月 ' + item.deductionDate + ' 日' }}扣繳
+                            </span>
+                            <div class="btn-group-sm">
+                                <button class="action-btn" @click="openPayModal(item)">繳納</button>
+                                <button class="edit-btn" @click="openEditFixed(item)">編輯</button>
+                                <button class="delete-btn" @click="deleteFixed(item.id)">刪除</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div v-if="item.hasTotal" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--border);">
+                    <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); font-weight: bold;">
+                        <span>尚欠款餘額</span>
+                        <span>{{ formatCurrency(item.remainingAmount) }} / 總額 {{ formatCurrency(item.totalAmount) }}</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" :style="{ width: Math.max(0, Math.min(100, ((item.totalAmount - item.remainingAmount) / item.totalAmount * 100))) + '%' }"></div>
+                    </div>
+                    <div style="text-align: right; font-size: 11px; margin-top: 5px; color: var(--success);">
+                        已繳進度: {{ Math.round(Math.max(0, Math.min(100, ((item.totalAmount - item.remainingAmount) / item.totalAmount * 100)))) }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div v-show="currentPage === 'invest'" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="header">
+            <div class="header-top">
+                <div style="display: flex; gap: 15px; font-size: 22px; user-select: none;">
+                    <span @click="isPrivacyMode = !isPrivacyMode" style="cursor:pointer; filter: grayscale(0.2);">{{ isPrivacyMode ? '🙈' : '👁️' }}</span>
+                </div>
+                <div class="header-title">投資組合</div>
+                <div style="width:24px;"></div>
+            </div>
+            <div style="text-align: center; padding-top: 5px;">
+                <div style="font-size: 13px; opacity: 0.9; margin-bottom: 5px;">總投入本金估算</div>
+                <div style="font-size: 32px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">{{ formatCurrency(investTotalPrincipal) }}</div>
+            </div>
+        </div>
+        <div class="content-area" style="padding-top: 25px;">
+            
+            <div class="group-header">投資帳戶餘額</div>
+            <div style="display: flex; gap: 10px; overflow-x: auto; padding: 0 5px; margin-bottom: 15px; scrollbar-width: none;">
+                <div v-for="acc in investAccounts" :key="acc.id" class="list-card" style="min-width: 140px; margin: 0; flex-direction: column; align-items: flex-start; padding: 12px; border: 1px solid var(--border);">
+                    <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">{{ acc.name }}</div>
+                    <div style="font-size: 18px; font-weight: bold; color: var(--text-main);">{{ formatCurrency(acc.balance) }}</div>
+                </div>
+                <div v-if="investAccounts.length === 0" class="empty-state" style="margin: 0; width: 100%; text-align: left; font-size: 13px;">尚未設定投資帳戶，請至資金管理設定。</div>
+            </div>
+
+            <button class="btn-block" @click="openAddInvest">+ 新增投資紀錄</button>
+            <div class="group-header">獨立投資明細 (不列入首頁收支)</div>
+            <div v-if="investments.length === 0" class="empty-state">尚無投資紀錄，點擊上方新增</div>
+            
+            <div class="list-card" v-for="inv in sortedInvestments" :key="inv.id">
+                <div class="icon-circle" :style="inv.type === 'buy' ? 'background: #e3f2fd; color: #0984e3;' : 'background: #e8f8f5; color: var(--success);'">
+                    {{ inv.type === 'buy' ? '買' : (inv.type === 'sell' ? '賣' : '息') }}
+                </div>
+                <div class="item-details">
+                    <div class="item-header">
+                        <span class="item-title">{{ inv.target }}</span>
+                        <span class="item-amount" :class="inv.type === 'buy' ? 'expense' : 'income'">
+                            {{ inv.type === 'buy' ? '-' : '+' }} {{ formatCurrency(inv.amount) }}
+                        </span>
+                    </div>
+                    <div class="item-footer">
+                        <span class="item-subtitle">{{ inv.date }} · {{ getAccountName(inv.accountId) }}</span>
+                        <div class="btn-group-sm">
+                            <button class="delete-btn" @click="deleteInvest(inv.id)">刪除</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div v-show="currentPage === 'data'" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="header">
+            <div class="header-top">
+                <div style="width:24px;"></div>
+                <div class="header-title">資料與設定</div>
+                <div style="width:24px;"></div>
+            </div>
+        </div>
+        <div class="content-area" style="padding-top: 25px;">
+            <div class="group-header">預算設定</div>
+            <div class="list-card" style="flex-direction: column; align-items: stretch; gap: 10px;">
+                <div style="font-size: 14px; color: var(--text-main); margin-bottom: 5px;">設定每月總預算，幫助您控制支出。</div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="form-control-sim" @click="openGlobalNumpad(monthlyBudget, v => monthlyBudget = v)" placeholder="輸入每月預算金額" style="flex: 1;">{{ monthlyBudget || '' }}</div>
+                </div>
+            </div>
+
+            <div class="group-header">Google 試算表雙向同步</div>
+            <div class="list-card" style="flex-direction: column; align-items: stretch; gap: 10px;">
+                <div style="font-size: 14px; color: var(--text-main); margin-bottom: 5px;">貼上 Apps Script Web App 網址以進行同步。</div>
+                <input type="text" class="form-control" v-model="googleSyncUrl" placeholder="https://script.google.com/macros/s/...">
+                <div style="display: flex; gap: 10px; margin-top: 5px;">
+                    <button class="btn-block" @click="syncToCloud(false)" style="margin-bottom: 0; border-color: var(--primary); color: var(--primary); flex: 1;">☁️ 備份至雲端</button>
+                    <button class="btn-block" @click="syncFromCloud" style="margin-bottom: 0; border-color: var(--success); color: var(--success); flex: 1;">⬇️ 從雲端還原</button>
+                </div>
+            </div>
+            
+            <div class="group-header">指定範圍匯出 (支援 Google 試算表 CSV)</div>
+            <div class="list-card" style="flex-direction: column; align-items: stretch; gap: 10px;">
+                <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">開始日期</label>
+                        <input type="date" class="form-control" v-model="exportStartDate">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">結束日期</label>
+                        <input type="date" class="form-control" v-model="exportEndDate">
+                    </div>
+                </div>
+                <button class="btn-block" @click="exportCSV" style="margin-bottom: 0; background: var(--primary); color: white; border: none;">📥 匯出至 Google 試算表</button>
+            </div>
+
+            <div class="group-header" style="margin-top: 25px;">從 Google 試算表 (CSV) 匯入</div>
+            <div class="list-card" style="flex-direction: column; align-items: stretch; gap: 10px;">
+                <input type="file" id="fileInput" @change="handleFileUpload" accept=".csv" style="display: none;">
+                <button class="btn-block" @click="triggerFileInput" style="margin-bottom: 0; border-color: var(--success); color: var(--success);">📤 選擇 CSV 檔案匯入</button>
+            </div>
+            
+            <div class="group-header" style="margin-top: 25px; color: var(--danger);">系統操作</div>
+            <div class="list-card" style="flex-direction: column; align-items: stretch;">
+                <button class="btn-block" @click="clearAllData" style="margin-bottom: 0; border-color: var(--danger); color: var(--danger); background: transparent;">⚠️ 清除所有紀錄</button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item" :class="{active: currentPage === 'home'}" @click="currentPage = 'home'">
+            <div style="font-size: 20px; margin-bottom: 2px;">📝</div>
+            明細
+        </div>
+        <div class="nav-item" :class="{active: currentPage === 'funds'}" @click="currentPage = 'funds'">
+            <div style="font-size: 20px; margin-bottom: 2px;">💰</div>
+            資金
+        </div>
+        <div class="nav-item" :class="{active: currentPage === 'fixed'}" @click="currentPage = 'fixed'">
+            <div style="font-size: 20px; margin-bottom: 2px;">🏦</div>
+            帳務
+        </div>
+        <div class="nav-item" :class="{active: currentPage === 'invest'}" @click="currentPage = 'invest'">
+            <div style="font-size: 20px; margin-bottom: 2px;">📈</div>
+            投資
+        </div>
+        <div class="nav-item" :class="{active: currentPage === 'data'}" @click="currentPage = 'data'">
+            <div style="font-size: 20px; margin-bottom: 2px;">⚙️</div>
+            設定
+        </div>
+    </nav>
+
+    <div class="modal-overlay" v-show="showTxModal">
+        <div class="modal-content">
+            <div class="modal-header">{{ editTxId ? '編輯紀錄' : '新增紀錄' }}</div>
+            
+            <div class="type-toggle">
+                <div class="type-toggle-btn" :class="{'active-expense': txForm.type === 'expense'}" @click="txForm.type = 'expense'">支出</div>
+                <div class="type-toggle-btn" :class="{'active-income': txForm.type === 'income'}" @click="txForm.type = 'income'">收入</div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 5px;">
+                <label>金額</label>
+                <div style="background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px; padding: 15px; text-align: right; font-size: 32px; font-weight: bold; min-height: 60px; display: flex; align-items: center; justify-content: flex-end;"
+                     :class="txForm.type === 'expense' ? 'expense' : 'income'">
+                    {{ txForm.amount ? (txForm.type === 'expense' ? '-' : '+') + txForm.amount : '0' }}
+                </div>
+            </div>
+
+            <div style="background: var(--keyboard-bg); border-radius: 12px; padding: 10px; margin-bottom: 20px;">
+                <div class="numpad-grid">
+                    <button v-for="n in 9" :key="'num-'+n" @click="inputNum(n)" class="numpad-btn">{{ n }}</button>
+                    <button @click="inputNum('C')" class="numpad-btn btn-c">C</button>
+                    <button @click="inputNum(0)" class="numpad-btn">0</button>
+                    <button @click="inputNum('Backspace')" class="numpad-btn btn-del">⌫</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>分類 (可快速點選或自行輸入)</label>
+                <div class="quick-tags">
+                    <span class="quick-tag" :class="{selected: txForm.category === cat}" v-for="cat in currentCategories" :key="'cat-'+cat" @click="txForm.category = cat">{{ cat }}</span>
+                </div>
+                <input type="text" class="form-control" v-model="txForm.category" placeholder="輸入或選擇分類">
+            </div>
+            
+            <div class="form-group">
+                <label>支付/入帳方式 (現金/信用卡/電支/票證)</label>
+                <select class="form-control" v-model="txForm.accountId">
+                    <option disabled value="">請選擇付款或入帳方式</option>
+                    <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }} (餘額: {{ formatCurrency(acc.balance) }})</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>日期</label>
+                <input type="date" class="form-control" v-model="txForm.date">
+            </div>
+            <div class="form-group">
+                <label>備註 (可快速點選或自行輸入)</label>
+                <div class="quick-tags" style="margin-bottom: 8px;">
+                    <span class="quick-tag" v-for="n in ['早餐', '午餐', '晚餐', '飲料', '交通', '日用品', '轉帳']" @click="txForm.note = n">{{ n }}</span>
+                </div>
+                <input type="text" class="form-control" v-model="txForm.note" placeholder="新增備註...">
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-cancel" @click="showTxModal = false">取消</button>
+                <button class="btn btn-submit" @click="saveTransaction">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" v-show="showAccModal">
+        <div class="modal-content">
+            <div class="modal-header">{{ editAccId ? '編輯帳戶/卡片' : '新增帳戶/卡片' }}</div>
+            <div class="form-group">
+                <label>名稱 (可快速點選或自行輸入)</label>
+                <div class="quick-tags" style="margin-bottom: 8px;">
+                    <span class="quick-tag" v-for="n in ['台新', '國泰', '富邦', '玉山', '中信', 'LinePay', '街口', '悠遊卡']" @click="accForm.name = n">{{ n }}</span>
+                </div>
+                <input type="text" class="form-control" v-model="accForm.name" placeholder="例如：台新銀行、LinePay、悠遊卡">
+            </div>
+            <div class="form-group">
+                <label>類型</label>
+                <select class="form-control" v-model="accForm.type">
+                    <option value="bank">🏦 銀行帳戶</option>
+                    <option value="wallet">💵 現金錢包</option>
+                    <option value="epay">📱 電子/第三方支付</option>
+                    <option value="credit">💳 信用卡</option>
+                    <option value="iccard">🪪 電子票證 (悠遊卡/一卡通)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>當前餘額 (信用卡填已刷金額，負數)</label>
+                <div class="form-control-sim" @click="openGlobalNumpad(accForm.balance, v => accForm.balance = v)" placeholder="輸入金額">{{ accForm.balance !== '' ? accForm.balance : '' }}</div>
+            </div>
+            
+            <label class="checkbox-group" v-if="['bank', 'wallet', 'epay'].includes(accForm.type)">
+                <input type="checkbox" v-model="accForm.isInvestAccount" style="width: 18px; height: 18px;"> 設為投資帳戶 (顯示於投資頁面)
+            </label>
+
+            <div class="form-group" v-if="accForm.type === 'credit'">
+                <label>總額度</label>
+                <div class="form-control-sim" @click="openGlobalNumpad(accForm.creditLimit, v => accForm.creditLimit = v)" placeholder="輸入信用卡額度">{{ accForm.creditLimit !== '' ? accForm.creditLimit : '' }}</div>
+            </div>
+            <div class="form-group" v-if="accForm.type === 'credit'"><div style="display:flex; gap:10px;"><div style="flex:1;"><label>結帳日 (1-31)</label><input type="number" class="form-control" v-model="accForm.closingDate"></div><div style="flex:1;"><label>繳款日 (1-31)</label><input type="number" class="form-control" v-model="accForm.dueDate"></div></div></div>
+            <div class="form-group" v-if="accForm.type === 'credit'"><label>自動扣繳日 (選填 1-31)</label><input type="number" class="form-control" v-model="accForm.autoPayDate"></div>
+            <div class="form-group" v-if="accForm.type === 'credit' && accForm.autoPayDate"><label>自動扣繳來源帳戶</label><select class="form-control" v-model="accForm.autoPayAccount"><option value="">請選擇</option><option v-for="a in accounts" :key="a.id" :value="a.id">{{ a.name }}</option></select></div>
+            
+            <div class="btn-row"><button class="btn btn-cancel" @click="showAccModal = false">取消</button><button class="btn btn-submit" @click="saveAccount">儲存</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" v-show="showTransferModal">
+        <div class="modal-content">
+            <div class="modal-header">資金流動 (轉帳/提款)</div>
+            <div class="form-group"><label>轉出帳戶 (從哪裡扣款)</label><select class="form-control" v-model="transferForm.from"><option disabled value="">請選擇</option><option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option></select></div>
+            <div class="form-group"><label>轉入帳戶 (錢存入哪裡)</label><select class="form-control" v-model="transferForm.to"><option disabled value="">請選擇</option><option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option></select></div>
+            <div class="form-group">
+                <label>金額</label>
+                <div class="form-control-sim" @click="openGlobalNumpad(transferForm.amount, v => transferForm.amount = v)" placeholder="輸入轉帳金額">{{ transferForm.amount !== '' ? transferForm.amount : '' }}</div>
+            </div>
+            <div class="form-group"><label>日期</label><input type="date" class="form-control" v-model="transferForm.date"></div>
+            <div class="btn-row"><button class="btn btn-cancel" @click="showTransferModal = false">取消</button><button class="btn btn-submit" @click="saveTransfer">確認</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" v-show="showFixedModal">
+        <div class="modal-content">
+            <div class="modal-header">{{ editFixedId ? '編輯帳務設定' : '新增帳務設定' }}</div>
+            <div class="form-group"><label>帳務名稱</label><input type="text" class="form-control" v-model="fixedForm.name" placeholder="例如：房貸、儲蓄險、Netflix"></div>
+            <div class="form-group">
+                <label>類型</label>
+                <select class="form-control" v-model="fixedForm.type">
+                    <option value="loan">🏦 貸款</option>
+                    <option value="insurance">🛡️ 保險</option>
+                    <option value="subscription">🔄 訂閱/固定費 (電話費等)</option>
+                </select>
+            </div>
+            <div class="form-group"><label>繳費週期</label><select class="form-control" v-model="fixedForm.cycle"><option value="monthly">每月</option><option value="yearly">每年</option></select></div>
+            <div class="form-group" v-if="fixedForm.cycle === 'monthly'"><label>扣款/繳款日(1~31)</label><input type="number" class="form-control" v-model="fixedForm.deductionDate"></div>
+            <div class="form-group" v-if="fixedForm.cycle === 'yearly'"><label>扣款/繳款日期</label><div style="display:flex; gap:10px;"><select class="form-control" v-model="fixedForm.deductionMonth"><option v-for="m in 12" :key="m" :value="m">{{ m }}月</option></select><input type="number" class="form-control" v-model="fixedForm.deductionDate" placeholder="日(1~31)"></div></div>
+            <div class="form-group">
+                <label>每期應繳金額</label>
+                <div class="form-control-sim" @click="openGlobalNumpad(fixedForm.amount, v => fixedForm.amount = v)" placeholder="輸入應繳金額">{{ fixedForm.amount !== '' ? fixedForm.amount : '' }}</div>
+            </div>
+            
+            <label class="checkbox-group"><input type="checkbox" v-model="fixedForm.hasTotal" style="width: 18px; height: 18px;"> 記錄總額與繳費進度</label>
+            <div v-show="fixedForm.hasTotal" class="form-group">
+                <label>應繳總額</label>
+                <div class="form-control-sim" @click="openGlobalNumpad(fixedForm.totalAmount, v => fixedForm.totalAmount = v)" placeholder="設定貸款或保險的總額">{{ fixedForm.totalAmount !== '' ? fixedForm.totalAmount : '' }}</div>
+            </div>
+            
+            <div class="form-group"><label>自動扣款/繳納帳戶 (選填)</label><select class="form-control" v-model="fixedForm.autoPayAccountId"><option value="">(僅提醒，不自動扣款)</option><option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option></select></div>
+            <div class="btn-row"><button class="btn btn-cancel" @click="showFixedModal = false">取消</button><button class="btn btn-submit" @click="saveFixedExpense">儲存</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" v-show="showPayFixedModal">
+        <div class="modal-content">
+            <div class="modal-header">繳交帳務費用</div>
+            <div class="form-group"><label>選擇支付帳戶/信用卡</label><select class="form-control" v-model="payFixedState.accountId"><option disabled value="">請選擇</option><option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option></select></div>
+            <div class="form-group"><label>繳納日期</label><input type="date" class="form-control" v-model="payFixedState.date"></div>
+            <div class="btn-row"><button class="btn btn-cancel" @click="showPayFixedModal = false">取消</button><button class="btn btn-submit" @click="executePayFixed">確認扣款</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" v-show="showInvestModal">
+        <div class="modal-content">
+            <div class="modal-header">新增投資紀錄</div>
+            <div class="type-toggle">
+                <div class="type-toggle-btn" :class="{'active-expense': investForm.type === 'buy'}" @click="investForm.type = 'buy'">買入</div>
+                <div class="type-toggle-btn" :class="{'active-income': investForm.type === 'sell'}" @click="investForm.type = 'sell'">賣出</div>
+                <div class="type-toggle-btn" :class="{'active-income': investForm.type === 'dividend'}" @click="investForm.type = 'dividend'">配息</div>
+            </div>
+            <div class="form-group">
+                <label>投資標的名稱</label>
+                <div class="quick-tags" style="margin-bottom: 8px;">
+                    <span class="quick-tag" v-for="t in ['0050', '0056', '00878', '台積電', '美金', '定存']" @click="investForm.target = t">{{ t }}</span>
+                </div>
+                <input type="text" class="form-control" v-model="investForm.target" placeholder="如：0050, 台積電">
+            </div>
+            <div class="form-group">
+                <label>金額</label>
+                <div class="form-control-sim" @click="openGlobalNumpad(investForm.amount, v => investForm.amount = v)" placeholder="輸入投資金額">{{ investForm.amount !== '' ? investForm.amount : '' }}</div>
+            </div>
+            <div class="form-group"><label>選擇關聯銀行/交割帳戶</label><select class="form-control" v-model="investForm.accountId"><option disabled value="">請選擇</option><option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }} (可用: {{ formatCurrency(acc.balance) }})</option></select></div>
+            <div class="form-group"><label>日期</label><input type="date" class="form-control" v-model="investForm.date"></div>
+            <div class="btn-row"><button class="btn btn-cancel" @click="showInvestModal = false">取消</button><button class="btn btn-submit" @click="saveInvest">儲存</button></div>
+        </div>
+    </div>
+
+    <!-- Global Numpad Modal -->
+    <div class="modal-overlay" v-show="showGlobalNumpad" style="z-index: 200;">
+        <div class="modal-content" style="padding-bottom: env(safe-area-inset-bottom);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div style="font-size: 16px; color: var(--text-muted);">輸入數字</div>
+                <div style="font-size: 32px; font-weight: bold; color: var(--primary);">{{ globalNumpadValue || '0' }}</div>
+            </div>
+            <div class="numpad-grid" style="margin-bottom: 15px;">
+                <button v-for="n in 9" :key="'gnum-'+n" @click="inputGlobalNum(n)" class="numpad-btn">{{ n }}</button>
+                <button @click="inputGlobalNum('C')" class="numpad-btn btn-c">C</button>
+                <button @click="inputGlobalNum(0)" class="numpad-btn">0</button>
+                <button @click="inputGlobalNum('Backspace')" class="numpad-btn btn-del">⌫</button>
+                <button @click="inputGlobalNum('-')" class="numpad-btn" style="background: var(--tag-bg);">-</button>
+            </div>
+            <button class="btn-block" style="margin-bottom: 0; background: var(--primary); color: white; border: none; font-size: 18px;" @click="confirmGlobalNumpad">確認</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" v-show="showNotifModal">
+        <div class="modal-content" style="max-height: 80vh; display:flex; flex-direction: column;">
+            <div class="modal-header" style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 10px;">
+                系統提醒通知
+                <button @click="showNotifModal=false; unreadNotifs=0;" style="border:none;background:none;font-size:28px;cursor:pointer;color:var(--text-muted);">&times;</button>
+            </div>
+            <div style="flex:1; overflow-y:auto; padding-bottom: 20px;">
+                <div v-if="notifications.length === 0" class="empty-state" style="margin-top: 20px;">目前無新通知</div>
+                <div v-for="n in notifications" :key="n.id" style="padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; text-align: left;">
+                    <div style="font-weight: bold; color: var(--text-main); margin-bottom: 4px;">{{ n.title }}</div>
+                    <div style="color: var(--text-muted); font-size: 13px; line-height: 1.4;">{{ n.message }}</div>
+                    <div style="color: #b2bec3; font-size: 11px; margin-top: 6px;">{{ n.date }}</div>
+                </div>
+            </div>
+            <button v-if="notifications.length > 0" class="btn-block" @click="clearNotifications" style="margin-top:10px; border-color: var(--danger); color: var(--danger);">清除全部紀錄</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    if (typeof Vue === 'undefined') {
+        document.body.innerHTML = '<div style="color:white; padding: 20px; text-align:center; margin-top:50px;">載入失敗。<br><br>您的瀏覽器阻擋了核心程式庫 (Vue.js)。請嘗試關閉瀏覽器的「防追蹤功能」或換一個瀏覽器開啟。</div>';
+    } else {
+        const { createApp, ref, computed, watch, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const currentPage = ref('home');
+                const isPrivacyMode = ref(false);
+
+                const getYearMonth = (d) => {
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    return `${year}-${month}`;
+                };
+                const selectedMonth = ref(getYearMonth(new Date()));
+
+                const transactions = ref([]);
+                const accounts = ref([{ id: 1, name: '現金錢包', type: 'wallet', balance: 0, isInvestAccount: false }]);
+                const fixedExpenses = ref([]);
+                const investments = ref([]);
+                const notifications = ref([]);
+                const unreadNotifs = ref(0);
+                
+                const searchQuery = ref('');
+                const googleSyncUrl = ref('');
+                const monthlyBudget = ref(0);
+
+                let syncTimeout = null;
+                let isAppLoaded = false; 
+
+                const initDB = async () => {
+                    try {
+                        if (typeof localforage !== 'undefined') {
+                            localforage.config({ name: 'MoneyAppDB', storeName: 'money_data' });
+
+                            const loadWithMigration = async (key, refVar, defaultVal) => {
+                                let data = await localforage.getItem(key);
+                                if (!data) {
+                                    try {
+                                        const legacy = localStorage.getItem(key);
+                                        if (legacy) { data = JSON.parse(legacy); await localforage.setItem(key, data); }
+                                    } catch (e) {}
+                                }
+                                if (data !== null && data !== undefined) refVar.value = data;
+                                else if (defaultVal !== undefined) refVar.value = defaultVal;
+                            };
+
+                            await loadWithMigration('v_transactions', transactions, []);
+                            await loadWithMigration('v_accounts', accounts, [{ id: 1, name: '現金錢包', type: 'wallet', balance: 0, isInvestAccount: false }]);
+                            await loadWithMigration('v_fixedExpenses', fixedExpenses, []);
+                            await loadWithMigration('v_investments', investments, []);
+                            await loadWithMigration('v_notifications', notifications, []);
+                            await loadWithMigration('v_googleSyncUrl', googleSyncUrl, '');
+                            await loadWithMigration('v_monthlyBudget', monthlyBudget, 0);
+                            await loadWithMigration('v_privacyMode', isPrivacyMode, false);
+
+                            watch(transactions, (val) => localforage.setItem('v_transactions', JSON.parse(JSON.stringify(val))), { deep: true });
+                            watch(accounts, (val) => localforage.setItem('v_accounts', JSON.parse(JSON.stringify(val))), { deep: true });
+                            watch(fixedExpenses, (val) => localforage.setItem('v_fixedExpenses', JSON.parse(JSON.stringify(val))), { deep: true });
+                            watch(investments, (val) => localforage.setItem('v_investments', JSON.parse(JSON.stringify(val))), { deep: true });
+                            watch(notifications, (val) => localforage.setItem('v_notifications', JSON.parse(JSON.stringify(val))), { deep: true });
+                            watch(googleSyncUrl, (val) => localforage.setItem('v_googleSyncUrl', val));
+                            watch(monthlyBudget, (val) => localforage.setItem('v_monthlyBudget', val));
+                            watch(isPrivacyMode, (val) => localforage.setItem('v_privacyMode', val));
+                        }
+                        
+                        checkAutoPayAndNotify();
+                        isAppLoaded = true;
+                    } catch (e) {
+                        console.error("Storage Error:", e);
+                    }
+                };
+
+                const triggerAutoSync = () => {
+                    if (!isAppLoaded || !googleSyncUrl.value) return; 
+                    clearTimeout(syncTimeout);
+                    syncTimeout = setTimeout(() => { syncToCloud(true); }, 2000); 
+                };
+
+                watch([transactions, accounts, fixedExpenses, investments], () => { triggerAutoSync(); }, { deep: true });
+
+                initDB();
+
+                const checkAutoPayAndNotify = () => {
+                    const today = new Date();
+                    const currentYMD = today.toISOString().slice(0, 10);
+                    const currentYM = currentYMD.slice(0, 7);
+                    const currentDay = today.getDate();
+                    const currentMonth = today.getMonth() + 1;
+                    const currentYear = today.getFullYear();
+                    
+                    let newNotifications = [];
+
+                    fixedExpenses.value.forEach(fixed => {
+                        let targetDate;
+                        if (fixed.cycle === 'monthly') {
+                            targetDate = new Date(currentYear, currentMonth - 1, fixed.deductionDate);
+                            if (targetDate < today && targetDate.getDate() !== currentDay) {
+                                targetDate = new Date(currentYear, currentMonth, fixed.deductionDate);
+                            }
+                        } else if (fixed.cycle === 'yearly') {
+                            targetDate = new Date(currentYear, fixed.deductionMonth - 1, fixed.deductionDate);
+                            if (targetDate < today && targetDate.getDate() !== currentDay) {
+                                targetDate = new Date(currentYear + 1, fixed.deductionMonth - 1, fixed.deductionDate);
+                            }
+                        }
+
+                        const diffTime = targetDate - today;
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                        if (diffDays >= 0 && diffDays <= 3) {
+                            const notifKey = `remind-${fixed.id}-${targetDate.toISOString().slice(0,10)}`;
+                            if (fixed.lastNotifiedDate !== notifKey) {
+                                fixed.lastNotifiedDate = notifKey;
+                                newNotifications.push({
+                                    id: Date.now() + Math.random(),
+                                    title: `帳務即將到期提醒: ${fixed.name}`,
+                                    message: `您的 ${fixed.name} 繳費日為 ${targetDate.getMonth()+1}/${targetDate.getDate()}，應繳金額：${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(fixed.amount)}。請確保帳戶餘額充足或按時繳納。`,
+                                    date: currentYMD
+                                });
+                            }
+                        }
+
+                        const isAutoPayDay = (fixed.cycle === 'monthly' && fixed.deductionDate <= currentDay) || 
+                                             (fixed.cycle === 'yearly' && fixed.deductionMonth === currentMonth && fixed.deductionDate <= currentDay);
+
+                        if (fixed.autoPayAccountId && isAutoPayDay) {
+                            const processKey = fixed.cycle === 'monthly' ? currentYM : currentYear.toString();
+                            if (fixed.lastProcessedDate !== processKey) {
+                                const acc = accounts.value.find(a => a.id === fixed.autoPayAccountId);
+                                const amount = parseInt(fixed.amount);
+                                if (acc) acc.balance -= amount;
+                                
+                                transactions.value.push({
+                                    id: Date.now() + Math.random(), type: 'expense', accountId: fixed.autoPayAccountId,
+                                    amount: amount, category: fixed.name, date: `${currentYM}-${String(fixed.deductionDate).padStart(2, '0')}`, note: '系統自動扣款'
+                                });
+                                
+                                if (fixed.hasTotal) fixed.remainingAmount = Math.max(0, fixed.remainingAmount - amount);
+                                
+                                fixed.lastProcessedDate = processKey;
+                                newNotifications.push({ id: Date.now()+Math.random(), title: `自動扣繳成功: ${fixed.name}`, message: `已從 ${acc ? acc.name : '綁定帳戶'} 自動扣繳金額 ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(amount)}`, date: currentYMD });
+                            }
+                        }
+                    });
+
+                    accounts.value.forEach(acc => {
+                        if (acc.type === 'credit') {
+                            if (acc.autoPayAccount && acc.autoPayDate && acc.autoPayDate <= currentDay) {
+                                if (acc.lastProcessedDate !== currentYM && acc.balance < 0) {
+                                    const payAcc = accounts.value.find(a => a.id === acc.autoPayAccount);
+                                    const amountToPay = Math.abs(acc.balance);
+                                    if (payAcc) {
+                                        payAcc.balance -= amountToPay;
+                                        acc.balance += amountToPay;
+                                        transactions.value.push({
+                                            id: Date.now() + Math.random(), type: 'transfer', 
+                                            accountId: payAcc.id, toAccountId: acc.id,
+                                            amount: amountToPay, category: '資金流通', 
+                                            date: `${currentYM}-${String(acc.autoPayDate).padStart(2, '0')}`, 
+                                            note: `信用卡自動扣繳 (${acc.name})`
+                                        });
+                                        acc.lastProcessedDate = currentYM;
+                                        newNotifications.push({ 
+                                            id: Date.now()+Math.random(), 
+                                            title: '信用卡自動扣繳成功', 
+                                            message: `已從 ${payAcc.name} 自動扣繳 ${acc.name} 帳單金額 ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(amountToPay)}`, 
+                                            date: currentYMD 
+                                        });
+                                    }
+                                }
+                            } else if (!acc.autoPayAccount && acc.dueDate && acc.balance < 0 && acc.lastNotifiedDate !== currentYM) {
+                                const daysUntilDue = acc.dueDate - currentDay;
+                                if (daysUntilDue >= 0 && daysUntilDue <= 3) {
+                                    acc.lastNotifiedDate = currentYM;
+                                    newNotifications.push({
+                                        id: Date.now()+Math.random(),
+                                        title: '信用卡即將到期提醒',
+                                        message: `您的 ${acc.name} 信用卡即將於本月 ${acc.dueDate} 日到期，尚欠款 ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(Math.abs(acc.balance))}，請記得手動繳費。`,
+                                        date: currentYMD
+                                    });
+                                }
+                            }
+                        }
+                    });
+
+                    if (newNotifications.length > 0) {
+                        notifications.value = [...newNotifications, ...notifications.value];
+                        unreadNotifs.value += newNotifications.length;
+                    }
+                };
+                
+                const clearNotifications = () => { notifications.value = []; unreadNotifs.value = 0; showNotifModal.value = false; };
+
+                const exportStartDate = ref(''); const exportEndDate = ref('');
+                const showTxModal = ref(false); const showAccModal = ref(false); const showTransferModal = ref(false); const showFixedModal = ref(false); const showPayFixedModal = ref(false); const showInvestModal = ref(false); const showNotifModal = ref(false);
+                const editTxId = ref(null); const editAccId = ref(null); const editFixedId = ref(null);
+
+                const showGlobalNumpad = ref(false);
+                const globalNumpadValue = ref('');
+                const globalNumpadCallback = ref(null);
+                const openGlobalNumpad = (currentVal, cb) => { globalNumpadValue.value = String(currentVal || ''); globalNumpadCallback.value = cb; showGlobalNumpad.value = true; };
+                const inputGlobalNum = (val) => { 
+                    let currentAmount = String(globalNumpadValue.value || ''); 
+                    if (val === 'C') { globalNumpadValue.value = ''; } 
+                    else if (val === 'Backspace') { globalNumpadValue.value = currentAmount.slice(0, -1); } 
+                    else if (val === '-') { if(currentAmount.startsWith('-')) globalNumpadValue.value = currentAmount.slice(1); else globalNumpadValue.value = '-' + currentAmount; }
+                    else { if (currentAmount.length < 10) { if (currentAmount === '0' && val !== 0) globalNumpadValue.value = String(val); else if (currentAmount === '0' && val === 0) {} else globalNumpadValue.value = currentAmount + String(val); } } 
+                };
+                const confirmGlobalNumpad = () => { if (globalNumpadCallback.value) { globalNumpadCallback.value(globalNumpadValue.value); } showGlobalNumpad.value = false; };
+
+                const txForm = ref({ type: 'expense', accountId: '', amount: '', category: '', date: new Date().toISOString().slice(0, 10), note: '' });
+                const accForm = ref({ name: '', type: 'bank', balance: '', creditLimit: '', closingDate: '', dueDate: '', autoPayDate: '', autoPayAccount: '', isInvestAccount: false });
+                const transferForm = ref({ from: '', to: '', amount: '', date: new Date().toISOString().slice(0, 10), note: '' });
+                const fixedForm = ref({ type: 'loan', name: '', cycle: 'monthly', amount: '', hasTotal: true, totalAmount: '', deductionDate: 1, deductionMonth: 1, autoPayAccountId: '' });
+                const payFixedState = ref({ item: null, accountId: '', date: new Date().toISOString().slice(0, 10) });
+                const investForm = ref({ type: 'buy', target: '', amount: '', accountId: '', date: new Date().toISOString().slice(0, 10) });
+
+                const expenseCategories = ['餐飲', '交通', '購物', '娛樂', '生活', '進修', '醫療', '帳單'];
+                const incomeCategories = ['薪水', '獎金', '投資回報', '零用錢', '退款', '其他'];
+
+                const currentCategories = computed(() => txForm.value.type === 'expense' ? expenseCategories : incomeCategories);
+
+                const currentMonthTransactions = computed(() => transactions.value.filter(t => t.type !== 'transfer' && t.date.startsWith(selectedMonth.value)).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() > 0 ? 1 : -1));
+                const transferTransactions = computed(() => transactions.value.filter(t => t.type === 'transfer').sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime() > 0 ? 1 : -1));
+                const filteredTransactions = computed(() => {
+                    if (!searchQuery.value) return currentMonthTransactions.value;
+                    const q = searchQuery.value.toLowerCase();
+                    return currentMonthTransactions.value.filter(t => t.category.toLowerCase().includes(q) || (t.note && t.note.toLowerCase().includes(q)));
+                });
+                
+                const expenseAnalysis = computed(() => {
+                    const expenses = filteredTransactions.value.filter(t => t.type === 'expense');
+                    const total = expenses.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+                    if (total === 0) return [];
+                    const map = {};
+                    expenses.forEach(t => { if (!map[t.category]) map[t.category] = 0; map[t.category] += Number(t.amount); });
+                    return Object.keys(map).map(cat => ({ category: cat, amount: map[cat], percentage: Math.round((map[cat] / total) * 100) })).sort((a, b) => b.amount - a.amount).slice(0, 5);
+                });
+
+                const monthlyIncome = computed(() => currentMonthTransactions.value.filter(t => t.type === 'income').reduce((sum, t) => sum + (Number(t.amount) || 0), 0));
+                const monthlyExpense = computed(() => currentMonthTransactions.value.filter(t => t.type === 'expense').reduce((sum, t) => sum + (Number(t.amount) || 0), 0));
+                const monthlyBalance = computed(() => monthlyIncome.value - monthlyExpense.value);
+
+                const groupedTransactions = computed(() => {
+                    const groups = {}; filteredTransactions.value.forEach(t => { if (!groups[t.date]) groups[t.date] = []; groups[t.date].push(t); });
+                    return groups;
+                });
+
+                const subscriptions = computed(() => fixedExpenses.value.filter(f => f.type === 'subscription'));
+                const loansAndInsurances = computed(() => fixedExpenses.value.filter(f => f.type !== 'subscription'));
+                const investAccounts = computed(() => accounts.value.filter(a => a.isInvestAccount));
+
+                const openAddTx = () => { txForm.value = { type: 'expense', accountId: accounts.value.length ? accounts.value[0].id : '', amount: '', category: '', date: new Date().toISOString().slice(0, 10), note: '' }; editTxId.value = null; showTxModal.value = true; };
+
+                const inputNum = (val) => {
+                    let currentAmount = String(txForm.value.amount || '');
+                    if (val === 'C') { txForm.value.amount = ''; } 
+                    else if (val === 'Backspace') { txForm.value.amount = currentAmount.slice(0, -1); } 
+                    else { if (currentAmount.length < 8) { if (currentAmount === '0' && val !== 0) txForm.value.amount = String(val); else if (currentAmount === '0' && val === 0) {} else txForm.value.amount = currentAmount + String(val); } }
+                };
+
+                const openEditTxOrTransfer = (tx) => {
+                    if (tx.type === 'transfer') { transferForm.value = { from: tx.accountId, to: tx.toAccountId, amount: tx.amount, date: tx.date, note: tx.originalNote || '' }; editTxId.value = tx.id; showTransferModal.value = true; } 
+                    else { txForm.value = { ...tx }; editTxId.value = tx.id; showTxModal.value = true; }
+                };
+
+                const saveTransaction = () => {
+                    if (!txForm.value.amount || !txForm.value.category || !txForm.value.accountId) return alert('請填寫完整資訊');
+                    const amount = parseInt(txForm.value.amount);
+                    if (editTxId.value) {
+                        const oldTx = transactions.value.find(t => t.id === editTxId.value);
+                        if (oldTx) {
+                            const oldAcc = accounts.value.find(a => a.id === oldTx.accountId);
+                            if (oldAcc) { if (oldTx.type === 'expense') oldAcc.balance += oldTx.amount; else if (oldTx.type === 'income') oldAcc.balance -= oldTx.amount; }
+                            const newAcc = accounts.value.find(a => a.id === txForm.value.accountId);
+                            if (newAcc) { if (txForm.value.type === 'expense') newAcc.balance -= amount; else newAcc.balance += amount; }
+                            const idx = transactions.value.findIndex(t => t.id === editTxId.value);
+                            transactions.value[idx] = { ...txForm.value, id: editTxId.value, amount };
+                        }
+                    } else {
+                        const acc = accounts.value.find(a => a.id === txForm.value.accountId);
+                        if (acc) { if (txForm.value.type === 'expense') acc.balance -= amount; else acc.balance += amount; }
+                        transactions.value.push({ id: Date.now(), ...txForm.value, amount });
+                    }
+                    showTxModal.value = false;
+                };
+
+                const deleteTransaction = (id) => {
+                    if (!confirm('確定刪除此紀錄？')) return;
+                    const txIndex = transactions.value.findIndex(t => t.id === id);
+                    if (txIndex > -1) {
+                        const tx = transactions.value[txIndex];
+                        const acc = accounts.value.find(a => a.id === tx.accountId);
+                        if (acc) { if (tx.type === 'expense') acc.balance += tx.amount; else if (tx.type === 'income') acc.balance -= tx.amount; else if (tx.type === 'transfer') { const toAcc = accounts.value.find(a => a.id === tx.toAccountId); acc.balance += tx.amount; if(toAcc) toAcc.balance -= tx.amount; } } 
+                        else if (tx.type === 'transfer') { const toAcc = accounts.value.find(a => a.id === tx.toAccountId); if(toAcc) toAcc.balance -= tx.amount; }
+                        transactions.value.splice(txIndex, 1);
+                    }
+                };
+
+                const getAccountName = (id) => { const acc = accounts.value.find(a => a.id === id); return acc ? acc.name : '已刪除'; };
+                const totalAssets = computed(() => accounts.value.reduce((sum, a) => sum + Number(a.balance), 0));
+
+                const openAddAcc = () => { accForm.value = { name: '', type: 'bank', balance: '', creditLimit: '', closingDate: '', dueDate: '', autoPayDate: '', autoPayAccount: '', isInvestAccount: false }; editAccId.value = null; showAccModal.value = true; };
+                const openEditAcc = (acc) => { accForm.value = { ...acc }; editAccId.value = acc.id; showAccModal.value = true; };
+                const saveAccount = () => {
+                    if (!accForm.value.name) return alert('請輸入名稱');
+                    const bal = parseInt(accForm.value.balance) || 0;
+                    if (editAccId.value) { const idx = accounts.value.findIndex(a => a.id === editAccId.value); if (idx > -1) accounts.value[idx] = { ...accounts.value[idx], name: accForm.value.name, type: accForm.value.type, balance: bal, creditLimit: parseInt(accForm.value.creditLimit)||0, closingDate: parseInt(accForm.value.closingDate)||null, dueDate: parseInt(accForm.value.dueDate)||null, autoPayDate: parseInt(accForm.value.autoPayDate)||null, autoPayAccount: accForm.value.autoPayAccount||null, isInvestAccount: accForm.value.isInvestAccount || false }; } 
+                    else { accounts.value.push({ id: Date.now(), name: accForm.value.name, type: accForm.value.type, balance: bal, creditLimit: parseInt(accForm.value.creditLimit)||0, closingDate: parseInt(accForm.value.closingDate)||null, dueDate: parseInt(accForm.value.dueDate)||null, autoPayDate: parseInt(accForm.value.autoPayDate)||null, autoPayAccount: accForm.value.autoPayAccount||null, isInvestAccount: accForm.value.isInvestAccount || false }); }
+                    showAccModal.value = false;
+                };
+
+                const openAddTransfer = () => { transferForm.value = { from: '', to: '', amount: '', date: new Date().toISOString().slice(0, 10), note: '' }; editTxId.value = null; showTransferModal.value = true; };
+                const saveTransfer = () => {
+                    if (!transferForm.value.from || !transferForm.value.to) return alert('請選擇帳戶');
+                    if (transferForm.value.from === transferForm.value.to) return alert('轉出與轉入不能相同');
+                    if (!transferForm.value.amount || transferForm.value.amount <= 0) return alert('請輸入金額');
+                    const amount = parseInt(transferForm.value.amount);
+                    if (editTxId.value) {
+                        const oldTx = transactions.value.find(t => t.id === editTxId.value);
+                        if (oldTx) {
+                            const oldFrom = accounts.value.find(a => a.id === oldTx.accountId); const oldTo = accounts.value.find(a => a.id === oldTx.toAccountId);
+                            if (oldFrom) oldFrom.balance += oldTx.amount; if (oldTo) oldTo.balance -= oldTx.amount;
+                            const newFrom = accounts.value.find(a => a.id === transferForm.value.from); const newTo = accounts.value.find(a => a.id === transferForm.value.to);
+                            if (newFrom) newFrom.balance -= amount; if (newTo) newTo.balance += amount;
+                            const idx = transactions.value.findIndex(t => t.id === editTxId.value);
+                            transactions.value[idx] = { ...oldTx, accountId: transferForm.value.from, toAccountId: transferForm.value.to, amount: amount, date: transferForm.value.date, note: `轉入 ${newTo ? newTo.name : '未知'} ` + (transferForm.value.note ? `(${transferForm.value.note})` : ''), originalNote: transferForm.value.note };
+                        }
+                    } else {
+                        const fromAcc = accounts.value.find(a => a.id === transferForm.value.from); const toAcc = accounts.value.find(a => a.id === transferForm.value.to);
+                        if (fromAcc && toAcc) {
+                            fromAcc.balance -= amount; toAcc.balance += amount;
+                            transactions.value.push({ id: Date.now(), type: 'transfer', accountId: fromAcc.id, toAccountId: toAcc.id, amount: amount, category: '資金流通', date: transferForm.value.date, note: `轉入 ${toAcc.name} ` + (transferForm.value.note ? `(${transferForm.value.note})` : ''), originalNote: transferForm.value.note });
+                        }
+                    }
+                    showTransferModal.value = false;
+                };
+
+                const deleteAccount = (id) => { if (!confirm('確定刪除此帳戶？')) return; accounts.value = accounts.value.filter(a => a.id !== id); if(txForm.value.accountId === id) txForm.value.accountId = ''; };
+
+                const openAddFixed = (defaultType = 'loan') => { fixedForm.value = { type: defaultType, name: '', cycle: 'monthly', amount: '', hasTotal: defaultType !== 'subscription', totalAmount: '', deductionDate: 1, deductionMonth: 1, autoPayAccountId: '' }; editFixedId.value = null; showFixedModal.value = true; };
+                const openEditFixed = (item) => { fixedForm.value = { ...item }; if (!fixedForm.value.deductionDate) fixedForm.value.deductionDate = 1; editFixedId.value = item.id; showFixedModal.value = true; };
+                const saveFixedExpense = () => {
+                    if (!fixedForm.value.name || !fixedForm.value.amount) return alert('請填寫完整資訊');
+                    const total = parseInt(fixedForm.value.totalAmount) || 0; const amount = parseInt(fixedForm.value.amount);
+                    if (editFixedId.value) {
+                        const idx = fixedExpenses.value.findIndex(f => f.id === editFixedId.value);
+                        if (idx > -1) {
+                            const old = fixedExpenses.value[idx]; let remaining = total;
+                            if (old.hasTotal && fixedForm.value.hasTotal) remaining = Math.max(0, total - (old.totalAmount - old.remainingAmount));
+                            fixedExpenses.value[idx] = { ...old, type: fixedForm.value.type, name: fixedForm.value.name, cycle: fixedForm.value.cycle, amount: amount, hasTotal: fixedForm.value.hasTotal, totalAmount: total, deductionDate: fixedForm.value.deductionDate, deductionMonth: fixedForm.value.deductionMonth, remainingAmount: remaining, autoPayAccountId: fixedForm.value.autoPayAccountId || null };
+                        }
+                    } else { fixedExpenses.value.push({ id: Date.now(), type: fixedForm.value.type, name: fixedForm.value.name, cycle: fixedForm.value.cycle, amount: amount, hasTotal: fixedForm.value.hasTotal, totalAmount: total, deductionDate: fixedForm.value.deductionDate, deductionMonth: fixedForm.value.deductionMonth, remainingAmount: total, autoPayAccountId: fixedForm.value.autoPayAccountId || null }); }
+                    showFixedModal.value = false;
+                };
+                const deleteFixed = (id) => { if (!confirm('確定刪除？')) return; fixedExpenses.value = fixedExpenses.value.filter(f => f.id !== id); };
+
+                const openPayModal = (item) => { payFixedState.value.item = item; payFixedState.value.accountId = accounts.value.length > 0 ? accounts.value[0].id : ''; payFixedState.value.date = new Date().toISOString().slice(0, 10); showPayFixedModal.value = true; };
+                const executePayFixed = () => {
+                    const item = payFixedState.value.item; if (!item || !payFixedState.value.accountId) return alert('請選擇扣款帳戶');
+                    const amount = parseInt(item.amount); const acc = accounts.value.find(a => a.id === payFixedState.value.accountId); if (acc) acc.balance -= amount;
+                    transactions.value.push({ id: Date.now(), type: 'expense', accountId: payFixedState.value.accountId, amount: amount, category: item.name, date: payFixedState.value.date, note: '帳務手動繳納' });
+                    if (item.hasTotal) { const idx = fixedExpenses.value.findIndex(f => f.id === item.id); if(idx > -1) fixedExpenses.value[idx].remainingAmount = Math.max(0, fixedExpenses.value[idx].remainingAmount - amount); }
+                    showPayFixedModal.value = false; alert('繳納成功！已更新進度並寫入明細。');
+                };
+
+                const sortedInvestments = computed(() => [...investments.value].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+                const investTotalPrincipal = computed(() => investments.value.reduce((sum, inv) => { if (inv.type === 'buy') return sum + Number(inv.amount); if (inv.type === 'sell') return sum - Number(inv.amount); return sum; }, 0));
+                
+                const assetAllocations = computed(() => {
+                    let cash = 0; let bank = 0; let epay = 0; let iccard = 0;
+                    accounts.value.forEach(a => {
+                        if (a.balance > 0) {
+                            if (a.type === 'wallet') cash += a.balance;
+                            else if (a.type === 'bank') bank += a.balance;
+                            else if (a.type === 'epay') epay += a.balance;
+                            else if (a.type === 'iccard') iccard += a.balance;
+                        }
+                    });
+                    const invest = investTotalPrincipal.value > 0 ? investTotalPrincipal.value : 0;
+                    const totalPositive = cash + bank + epay + iccard + invest;
+                    if (totalPositive === 0) return [];
+                    const result = [];
+                    if (bank > 0) result.push({ name: '銀行', amount: bank, percentage: Math.round(bank/totalPositive*100), color: '#3498db' });
+                    if (cash > 0) result.push({ name: '現金', amount: cash, percentage: Math.round(cash/totalPositive*100), color: '#2ecc71' });
+                    if (invest > 0) result.push({ name: '投資', amount: invest, percentage: Math.round(invest/totalPositive*100), color: '#9b59b6' });
+                    if (epay > 0) result.push({ name: '電支', amount: epay, percentage: Math.round(epay/totalPositive*100), color: '#f1c40f' });
+                    if (iccard > 0) result.push({ name: '票證', amount: iccard, percentage: Math.round(iccard/totalPositive*100), color: '#e67e22' });
+                    const totalPct = result.reduce((sum, item) => sum + item.percentage, 0);
+                    if (result.length > 0 && totalPct !== 100) result[0].percentage += (100 - totalPct);
+                    return result.sort((a,b) => b.amount - a.amount);
+                });
+                
+                const openAddInvest = () => { investForm.value = { type: 'buy', target: '', amount: '', accountId: accounts.value.length ? accounts.value[0].id : '', date: new Date().toISOString().slice(0, 10) }; showInvestModal.value = true; };
+                const saveInvest = () => {
+                    if (!investForm.value.target || !investForm.value.amount || !investForm.value.accountId) return alert('請填寫完整資訊');
+                    const amount = parseInt(investForm.value.amount); const acc = accounts.value.find(a => a.id === investForm.value.accountId);
+                    if (acc) { if (investForm.value.type === 'buy') acc.balance -= amount; else acc.balance += amount; }
+                    investments.value.push({ id: Date.now(), ...investForm.value, amount }); showInvestModal.value = false;
+                };
+                const deleteInvest = (id) => {
+                    if (!confirm('確定刪除？')) return; const idx = investments.value.findIndex(i => i.id === id);
+                    if (idx > -1) { const inv = investments.value[idx]; const acc = accounts.value.find(a => a.id === inv.accountId); if (acc) { if (inv.type === 'buy') acc.balance += inv.amount; else acc.balance -= inv.amount; } investments.value.splice(idx, 1); }
+                };
+
+                const syncToCloud = async (isSilent = false) => {
+                    if (!googleSyncUrl.value) { if (!isSilent) alert('請先輸入 Google Apps Script 網址'); return; }
+                    try {
+                        const payload = { transactions: transactions.value, accounts: accounts.value, fixedExpenses: fixedExpenses.value, investments: investments.value };
+                        const res = await fetch(googleSyncUrl.value.trim(), { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+                        const result = await res.json();
+                        if (!isSilent) { if (result.status === 'success') alert('🎉 備份成功！'); else alert('❌ 備份失敗：' + (result.message || '未知錯誤')); }
+                    } catch (e) { if (!isSilent) alert('連線失敗！'); }
+                };
+                const syncFromCloud = async () => {
+                    if (!googleSyncUrl.value) return alert('請先輸入網址'); if (!confirm('將會覆蓋您目前的資料，確定繼續嗎？')) return;
+                    try {
+                        const res = await fetch(googleSyncUrl.value); const data = await res.json();
+                        if (data && data.transactions) { transactions.value = data.transactions; accounts.value = data.accounts || []; fixedExpenses.value = data.fixedExpenses || []; investments.value = data.investments || []; alert('還原成功！'); } 
+                        else { alert('資料格式不符'); }
+                    } catch (e) { alert('連線失敗。'); }
+                };
+
+                const secureCSV = (val) => { if (!val) return '""'; let str = String(val).replace(/"/g, '""'); if (/^[=\+\-@\t\r]/.test(str)) str = "'" + str; return `"${str}"`; };
+                const exportCSV = () => {
+                    try {
+                        let csvContent = "\uFEFF年,月,日,收入/支出,類別,備註,合計\n"; let filteredTxs = [...transactions.value];
+                        if (exportStartDate.value) filteredTxs = filteredTxs.filter(t => t.date >= exportStartDate.value);
+                        if (exportEndDate.value) filteredTxs = filteredTxs.filter(t => t.date <= exportEndDate.value);
+                        filteredTxs.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).forEach(t => {
+                            const dateParts = t.date.split('-'); if (dateParts.length !== 3) return;
+                            const finalAmount = (t.type === 'expense' || t.type === 'transfer') ? -t.amount : t.amount;
+                            csvContent += `${dateParts[0]},${parseInt(dateParts[1])},${parseInt(dateParts[2])},${(t.type === 'expense' || t.type === 'transfer') ? '支出' : '收入'},${secureCSV(t.category)},${secureCSV(t.note)},${finalAmount}\n`;
+                        });
+                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `記帳明細.csv`; link.click();
+                    } catch (e) { alert('匯出錯誤'); }
+                };
+                const triggerFileInput = () => document.getElementById('fileInput').click();
+                const handleFileUpload = (event) => {
+                    const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
+                    reader.onload = (e) => { if (file.name.endsWith('.csv')) importCSV(e.target.result); else alert("請上傳 CSV"); }; reader.readAsText(file); event.target.value = '';
+                };
+                const importCSV = (csvText) => {
+                    try {
+                        const lines = csvText.split('\n').map(l => l.trim()).filter(l => l); if (lines.length <= 1) return; let addedCount = 0;
+                        for (let i = 1; i < lines.length; i++) {
+                            const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || []; if (row.length < 7) continue;
+                            const clean = (val) => val ? val.replace(/^"|"$/g, '').replace(/""/g, '"').replace(/^'/, '') : ''; 
+                            const year = parseInt(clean(row[0]).replace(/,/g, '')); const month = parseInt(clean(row[1])); const day = parseInt(clean(row[2])); let rawAmount = parseInt(clean(row[6]).replace(/,/g, ''));
+                            if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(rawAmount)) continue;
+                            const type = (clean(row[3]).includes('收入') || rawAmount > 0) ? 'income' : 'expense';
+                            transactions.value.push({ id: Date.now() + i + Math.floor(Math.random()*1000), type, date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`, category: clean(row[4]), amount: Math.abs(rawAmount), accountId: accounts.value.length ? accounts.value[0].id : '', note: clean(row[5]) });
+                            addedCount++;
+                        }
+                        if (addedCount > 0) alert(`成功匯入 ${addedCount} 筆`);
+                    } catch (e) { alert('匯入錯誤'); }
+                };
+                const clearAllData = () => { if (prompt('請輸入 "delete" 來確認刪除：') === 'delete') { transactions.value = []; accounts.value = []; fixedExpenses.value = []; investments.value = []; if (typeof localforage !== 'undefined') { localforage.setItem('v_transactions', []); localforage.setItem('v_accounts', []); localforage.setItem('v_fixedExpenses', []); localforage.setItem('v_investments', []); } alert('已清除'); } };
+
+                const formatCurrency = (val) => {
+                    if (isPrivacyMode.value) return '****';
+                    return new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(val || 0);
+                };
+                
+                const typeLabel = { 'bank': '🏦', 'wallet': '💵', 'epay': '📱', 'credit': '💳', 'iccard': '🪪' };
+
+                return {
+                    currentPage, selectedMonth, transactions, accounts, fixedExpenses, currentCategories,
+                    isPrivacyMode, monthlyBudget, assetAllocations, 
+                    
+                    showTxModal, showAccModal, showTransferModal, showFixedModal, showPayFixedModal, showInvestModal, showNotifModal,
+                    editTxId, editAccId, editFixedId, txForm, accForm, transferForm, fixedForm, payFixedState, investForm,
+                    exportStartDate, exportEndDate, expenseCategories, incomeCategories,
+                    currentMonthTransactions, transferTransactions, filteredTransactions, monthlyIncome, monthlyExpense, monthlyBalance, groupedTransactions, expenseAnalysis,
+                    investments, sortedInvestments, investTotalPrincipal, openAddInvest, saveInvest, deleteInvest,
+                    notifications, unreadNotifs, clearNotifications, searchQuery, googleSyncUrl, syncToCloud, syncFromCloud,
+                    totalAssets, typeLabel, openAddTx, openEditTxOrTransfer, saveTransaction, deleteTransaction, getAccountName,
+                    openAddAcc, openEditAcc, saveAccount, deleteAccount, openAddTransfer, saveTransfer,
+                    openAddFixed, openEditFixed, saveFixedExpense, deleteFixed, openPayModal, executePayFixed,
+                    exportCSV, triggerFileInput, handleFileUpload, clearAllData, formatCurrency, inputNum,
+                    
+                    showGlobalNumpad, globalNumpadValue, openGlobalNumpad, inputGlobalNum, confirmGlobalNumpad,
+                    subscriptions, loansAndInsurances, investAccounts
+                };
+            }
+        }).mount('#app');
+    }
+</script>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then(registration => {
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }).catch(err => {
+                console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+    }
+</script>
+</body>
+</html>
