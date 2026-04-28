@@ -3,7 +3,7 @@
   "name": "個人記帳與資金管理",
   "short_name": "記帳",
   "description": "個人收支、資金、帳務與投資管理工具",
-  "start_url": "/tasuto/money.html",
+  "start_url": "/tasuto/index.html",
   "scope": "/tasuto/",
   "display": "standalone",
   "orientation": "portrait",
