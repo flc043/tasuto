@@ -1,9 +1,13 @@
 {
-  "name": "個人記帳 PRO",
-  "short_name": "記帳PRO",
-  "start_url": "index.html",
-  "display": "fullscreen",
-  "background_color": "#f5f7fa",
+  "id": "/tasuto/",
+  "name": "個人記帳與資金管理",
+  "short_name": "記帳",
+  "description": "個人收支、資金、帳務與投資管理工具",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f6fa",
   "theme_color": "#f7b731",
   "icons": [
     {
