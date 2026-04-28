@@ -56,7 +56,7 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => {
           if (isNavigation) {
-            return caches.match('./index.html');
+            return caches.match('./money.html');
           }
         });
     })
