@@ -552,6 +552,20 @@
                 </button>
             </div>
 
+            <div class="group-header">安裝應用程式</div>
+            <div class="list-card" style="flex-direction: column; align-items: stretch; gap: 10px;">
+                <div style="font-size: 14px; color: var(--text-main); margin-bottom: 5px;">將此工具安裝為手機 App，會出現在應用程式列表中。</div>
+                <button
+                    v-if="canInstallApp"
+                    class="btn-block"
+                    @click="installPwaApp"
+                    style="margin-bottom: 0; background: var(--primary); color: white; border: none;"
+                >📲 安裝 App</button>
+                <div v-else style="font-size: 13px; color: var(--text-muted);">
+                    若尚未出現安裝按鈕，請以 Chrome 開啟此站並使用一段時間後再返回此頁。
+                </div>
+            </div>
+
             <div class="group-header">Google 試算表雙向同步</div>
             <div class="list-card" style="flex-direction: column; align-items: stretch; gap: 10px;">
                 <div style="font-size: 14px; color: var(--text-main); margin-bottom: 5px;">貼上 Apps Script Web App 網址並可指定試算表範圍。</div>
@@ -890,6 +904,8 @@
                 const syncStatus = ref('');
                 const isSyncing = ref(false);
                 const showExpenseAnalysis = ref(false);
+                const canInstallApp = ref(false);
+                const deferredInstallPrompt = ref(null);
 
                 watch(isDarkMode, (val) => {
                     document.documentElement.classList.toggle('dark-mode', val);
@@ -957,6 +973,18 @@
                 watch([transactions, accounts, fixedExpenses, investments], () => { triggerAutoSync(); }, { deep: true });
 
                 initDB();
+
+                onMounted(() => {
+                    window.addEventListener('beforeinstallprompt', (event) => {
+                        event.preventDefault();
+                        deferredInstallPrompt.value = event;
+                        canInstallApp.value = true;
+                    });
+                    window.addEventListener('appinstalled', () => {
+                        canInstallApp.value = false;
+                        deferredInstallPrompt.value = null;
+                    });
+                });
 
                 const checkAutoPayAndNotify = () => {
                     const today = new Date();
@@ -1411,6 +1439,16 @@
                     } catch (e) { alert('匯入錯誤'); }
                 };
                 const clearAllData = () => { if (prompt('請輸入 "delete" 來確認刪除：') === 'delete') { transactions.value = []; accounts.value = []; fixedExpenses.value = []; investments.value = []; if (typeof localforage !== 'undefined') { localforage.setItem('v_transactions', []); localforage.setItem('v_accounts', []); localforage.setItem('v_fixedExpenses', []); localforage.setItem('v_investments', []); } alert('已清除'); } };
+                const installPwaApp = async () => {
+                    if (!deferredInstallPrompt.value) return;
+                    deferredInstallPrompt.value.prompt();
+                    const result = await deferredInstallPrompt.value.userChoice;
+                    if (result.outcome !== 'accepted') {
+                        return;
+                    }
+                    canInstallApp.value = false;
+                    deferredInstallPrompt.value = null;
+                };
 
                 const formatCurrency = (val) => {
                     if (isPrivacyMode.value) return '****';
@@ -1433,6 +1471,7 @@ isPrivacyMode, monthlyBudget, showExpenseAnalysis, assetAllocations, accountType
                     openAddAcc, openEditAcc, saveAccount, deleteAccount, openAddTransfer, saveTransfer,
                     openAddFixed, openEditFixed, saveFixedExpense, deleteFixed, openPayModal, executePayFixed,
                     exportCSV, triggerFileInput, handleFileUpload, clearAllData, formatCurrency, inputNum,
+                    canInstallApp, installPwaApp,
                     
                     showGlobalNumpad, globalNumpadValue, openGlobalNumpad, inputGlobalNum, confirmGlobalNumpad,
                     subscriptions, loansAndInsurances, investAccounts
