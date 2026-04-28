@@ -1018,8 +1018,8 @@
                                 fixed.lastNotifiedDate = notifKey;
                                 newNotifications.push({
                                     id: Date.now() + Math.random(),
-                                    title: `撣喳??喳??唳???: ${fixed.name}`,
-                                    message: `?函? ${fixed.name} 蝜唾祥?亦 ${targetDate.getMonth()+1}/${targetDate.getDate()}嚗?蝜喲?憿?${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(fixed.amount)}??蝣箔?撣單擗??雲???像蝝,
+                                    title: `繳費提醒：${fixed.name}`,
+                                    message: `您的 ${fixed.name} 將於 ${targetDate.getMonth()+1}/${targetDate.getDate()} 到期，應繳金額為 ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(fixed.amount)}，請記得安排付款。`,
                                     date: currentYMD
                                 });
                             }
@@ -1037,13 +1037,13 @@
                                 
                                 transactions.value.push({
                                     id: Date.now() + Math.random(), type: 'expense', accountId: fixed.autoPayAccountId,
-                                    amount: amount, category: fixed.name, date: `${currentYM}-${String(fixed.deductionDate).padStart(2, '0')}`, note: '蝟餌絞?芸???狡'
+                                    amount: amount, category: fixed.name, date: `${currentYM}-${String(fixed.deductionDate).padStart(2, '0')}`, note: '自動扣繳'
                                 });
                                 
                                 if (fixed.hasTotal) fixed.remainingAmount = Math.max(0, fixed.remainingAmount - amount);
                                 
                                 fixed.lastProcessedDate = processKey;
-                                newNotifications.push({ id: Date.now()+Math.random(), title: `?芸???像??: ${fixed.name}`, message: `撌脣? ${acc ? acc.name : '蝬?撣單'} ?芸???像?? ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(amount)}`, date: currentYMD });
+                                newNotifications.push({ id: Date.now()+Math.random(), title: `自動扣繳成功：${fixed.name}`, message: `已從 ${acc ? acc.name : '指定帳戶'} 自動扣繳 ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(amount)}`, date: currentYMD });
                             }
                         }
                     });
@@ -1060,14 +1060,14 @@
                                         transactions.value.push({
                                             id: Date.now() + Math.random(), type: 'transfer', 
                                             accountId: payAcc.id, toAccountId: acc.id,
-                                            amount: amountToPay, category: '鞈?瘚?, 
+                                            amount: amountToPay, category: '轉帳',
                                             date: `${currentYM}-${String(acc.autoPayDate).padStart(2, '0')}`, 
                                             note: `靽∠?∟?蝜?(${acc.name})`
                                         });
                                         acc.lastProcessedDate = currentYM;
                                         newNotifications.push({ 
                                             id: Date.now()+Math.random(), 
-                                            title: '靽∠?∟?蝜單???, 
+                                            title: '信用卡自動扣款成功',
                                             message: `撌脣? ${payAcc.name} ?芸???像 ${acc.name} 撣喳?? ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(amountToPay)}`, 
                                             date: currentYMD 
                                         });
@@ -1079,8 +1079,8 @@
                                     acc.lastNotifiedDate = currentYM;
                                     newNotifications.push({
                                         id: Date.now()+Math.random(),
-                                        title: '靽∠?∪撠????,
-                                        message: `?函? ${acc.name} 靽∠?∪撠?祆? ${acc.dueDate} ?亙??撠?甈?${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(Math.abs(acc.balance))}嚗?閮???蝜唾祥?,
+                                        title: '信用卡繳款提醒',
+                                        message: `您的 ${acc.name} 將於 ${acc.dueDate} 日到期，應繳金額為 ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(Math.abs(acc.balance))}，請記得繳款。`,
                                         date: currentYMD
                                     });
                                 }
@@ -1178,7 +1178,7 @@
                 };
 
                 const saveTransaction = () => {
-                    if (!txForm.value.amount || !txForm.value.category || !txForm.value.accountId) return alert('隢‵撖怠??渲?閮?);
+                    if (!txForm.value.amount || !txForm.value.category || !txForm.value.accountId) return alert('請填寫完整交易資料');
                     const amount = parseInt(txForm.value.amount);
                     if (editTxId.value) {
                         const oldTx = transactions.value.find(t => t.id === editTxId.value);
@@ -1199,7 +1199,7 @@
                 };
 
                 const deleteTransaction = (id) => {
-                    if (!confirm('蝣箏??芷甇斤???')) return;
+                    if (!confirm('確定要刪除這筆交易嗎？')) return;
                     const txIndex = transactions.value.findIndex(t => t.id === id);
                     if (txIndex > -1) {
                         const tx = transactions.value[txIndex];
@@ -1220,7 +1220,7 @@
                     }
                 };
 
-                const getAccountName = (id) => { const acc = accounts.value.find(a => a.id === id); return acc ? acc.name : '撌脣??; };
+                const getAccountName = (id) => { const acc = accounts.value.find(a => a.id === id); return acc ? acc.name : '未知帳戶'; };
                 const totalAssets = computed(() => accounts.value.filter(a => a.type !== 'credit' && a.type !== 'thirdparty').reduce((sum, a) => sum + Number(a.balance), 0));
                 const accountTypeFilter = ref('all');
                 const filteredAccountsByType = computed(() => {
@@ -1231,7 +1231,7 @@
                 const openAddAcc = () => { accForm.value = { name: '', type: 'bank', balance: '', creditLimit: '', closingDate: '', dueDate: '', autoPayDate: '', autoPayAccount: '', isInvestAccount: false }; editAccId.value = null; showAccModal.value = true; };
                 const openEditAcc = (acc) => { accForm.value = { ...acc }; editAccId.value = acc.id; showAccModal.value = true; };
                 const saveAccount = () => {
-                    if (!accForm.value.name) return alert('隢撓?亙?蝔?);
+                    if (!accForm.value.name) return alert('請輸入帳戶名稱');
                     const bal = accForm.value.type === 'thirdparty' ? 0 : parseInt(accForm.value.balance) || 0;
                     if (editAccId.value) { const idx = accounts.value.findIndex(a => a.id === editAccId.value); if (idx > -1) accounts.value[idx] = { ...accounts.value[idx], name: accForm.value.name, type: accForm.value.type, balance: bal, creditLimit: parseInt(accForm.value.creditLimit)||0, closingDate: parseInt(accForm.value.closingDate)||null, dueDate: parseInt(accForm.value.dueDate)||null, autoPayDate: parseInt(accForm.value.autoPayDate)||null, autoPayAccount: accForm.value.autoPayAccount||null, isInvestAccount: accForm.value.isInvestAccount || false }; } 
                     else { accounts.value.push({ id: Date.now(), name: accForm.value.name, type: accForm.value.type, balance: bal, creditLimit: parseInt(accForm.value.creditLimit)||0, closingDate: parseInt(accForm.value.closingDate)||null, dueDate: parseInt(accForm.value.dueDate)||null, autoPayDate: parseInt(accForm.value.autoPayDate)||null, autoPayAccount: accForm.value.autoPayAccount||null, isInvestAccount: accForm.value.isInvestAccount || false }); }
@@ -1240,13 +1240,13 @@
 
                 const openAddTransfer = () => { transferForm.value = { from: '', to: '', amount: '', date: new Date().toISOString().slice(0, 10), note: '' }; editTxId.value = null; showTransferModal.value = true; };
                 const saveTransfer = () => {
-                    if (!transferForm.value.from || !transferForm.value.to) return alert('隢?董??);
-                    if (transferForm.value.from === transferForm.value.to) return alert('頧???乩??賜??);
-                    if (!transferForm.value.amount || transferForm.value.amount <= 0) return alert('隢撓?仿?憿?);
+                    if (!transferForm.value.from || !transferForm.value.to) return alert('請選擇轉出與轉入帳戶');
+                    if (transferForm.value.from === transferForm.value.to) return alert('轉出與轉入帳戶不可相同');
+                    if (!transferForm.value.amount || transferForm.value.amount <= 0) return alert('請輸入有效轉帳金額');
                     const amount = parseInt(transferForm.value.amount);
                     const fromAcc = accounts.value.find(a => a.id === transferForm.value.from);
                     const toAcc = accounts.value.find(a => a.id === transferForm.value.to);
-                    if ((fromAcc && fromAcc.type === 'thirdparty') || (toAcc && toAcc.type === 'thirdparty')) return alert('蝚砌??寞隞??賭誨?嗡誨隞??⊥??脰?撣單??撣?);
+                    if ((fromAcc && fromAcc.type === 'thirdparty') || (toAcc && toAcc.type === 'thirdparty')) return alert('第三方帳戶不可作為內部轉帳帳戶');
                     if (editTxId.value) {
                         const oldTx = transactions.value.find(t => t.id === editTxId.value);
                         if (oldTx) {
@@ -1261,18 +1261,18 @@
                     } else {
                         if (fromAcc && toAcc) {
                             fromAcc.balance -= amount; toAcc.balance += amount;
-                            transactions.value.push({ id: Date.now(), type: 'transfer', accountId: fromAcc.id, toAccountId: toAcc.id, amount: amount, category: '鞈?瘚?, date: transferForm.value.date, note: `頧 ${toAcc.name} ` + (transferForm.value.note ? `(${transferForm.value.note})` : ''), originalNote: transferForm.value.note });
+                            transactions.value.push({ id: Date.now(), type: 'transfer', accountId: fromAcc.id, toAccountId: toAcc.id, amount: amount, category: '轉帳', date: transferForm.value.date, note: `轉帳至 ${toAcc.name} ` + (transferForm.value.note ? `(${transferForm.value.note})` : ''), originalNote: transferForm.value.note });
                         }
                     }
                     showTransferModal.value = false;
                 };
 
-                const deleteAccount = (id) => { if (!confirm('蝣箏??芷甇文董?塚?')) return; accounts.value = accounts.value.filter(a => a.id !== id); if(txForm.value.accountId === id) txForm.value.accountId = ''; };
+                const deleteAccount = (id) => { if (!confirm('確定要刪除這個帳戶嗎？')) return; accounts.value = accounts.value.filter(a => a.id !== id); if(txForm.value.accountId === id) txForm.value.accountId = ''; };
 
                 const openAddFixed = (defaultType = 'loan') => { fixedForm.value = { type: defaultType, name: '', cycle: 'monthly', amount: '', hasTotal: defaultType !== 'subscription', totalAmount: '', deductionDate: 1, deductionMonth: 1, autoPayAccountId: '' }; editFixedId.value = null; showFixedModal.value = true; };
                 const openEditFixed = (item) => { fixedForm.value = { ...item }; if (!fixedForm.value.deductionDate) fixedForm.value.deductionDate = 1; editFixedId.value = item.id; showFixedModal.value = true; };
                 const saveFixedExpense = () => {
-                    if (!fixedForm.value.name || !fixedForm.value.amount) return alert('隢‵撖怠??渲?閮?);
+                    if (!fixedForm.value.name || !fixedForm.value.amount) return alert('請填寫完整固定支出資料');
                     const total = parseInt(fixedForm.value.totalAmount) || 0; const amount = parseInt(fixedForm.value.amount);
                     if (editFixedId.value) {
                         const idx = fixedExpenses.value.findIndex(f => f.id === editFixedId.value);
@@ -1284,15 +1284,15 @@
                     } else { fixedExpenses.value.push({ id: Date.now(), type: fixedForm.value.type, name: fixedForm.value.name, cycle: fixedForm.value.cycle, amount: amount, hasTotal: fixedForm.value.hasTotal, totalAmount: total, deductionDate: fixedForm.value.deductionDate, deductionMonth: fixedForm.value.deductionMonth, remainingAmount: total, autoPayAccountId: fixedForm.value.autoPayAccountId || null }); }
                     showFixedModal.value = false;
                 };
-                const deleteFixed = (id) => { if (!confirm('蝣箏??芷嚗?)) return; fixedExpenses.value = fixedExpenses.value.filter(f => f.id !== id); };
+                const deleteFixed = (id) => { if (!confirm('確定要刪除這筆固定支出嗎？')) return; fixedExpenses.value = fixedExpenses.value.filter(f => f.id !== id); };
 
                 const openPayModal = (item) => { payFixedState.value.item = item; payFixedState.value.accountId = accounts.value.length > 0 ? accounts.value[0].id : ''; payFixedState.value.date = new Date().toISOString().slice(0, 10); showPayFixedModal.value = true; };
                 const executePayFixed = () => {
-                    const item = payFixedState.value.item; if (!item || !payFixedState.value.accountId) return alert('隢?甈曉董??);
+                    const item = payFixedState.value.item; if (!item || !payFixedState.value.accountId) return alert('請選擇付款帳戶');
                     const amount = parseInt(item.amount); const acc = accounts.value.find(a => a.id === payFixedState.value.accountId); if (acc) acc.balance -= amount;
                     transactions.value.push({ id: Date.now(), type: 'expense', accountId: payFixedState.value.accountId, amount: amount, category: item.name, date: payFixedState.value.date, note: '撣喳???蝜喟?' });
                     if (item.hasTotal) { const idx = fixedExpenses.value.findIndex(f => f.id === item.id); if(idx > -1) fixedExpenses.value[idx].remainingAmount = Math.max(0, fixedExpenses.value[idx].remainingAmount - amount); }
-                    showPayFixedModal.value = false; alert('蝜喟???嚗歇?湔?脣漲銝血神?交?蝝啜?);
+                    showPayFixedModal.value = false; alert('付款已完成，並同步更新帳戶與剩餘金額');
                 };
 
                 const sortedInvestments = computed(() => [...investments.value].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
@@ -1324,20 +1324,20 @@
                 
                 const openAddInvest = () => { investForm.value = { type: 'buy', target: '', amount: '', accountId: accounts.value.length ? accounts.value[0].id : '', date: new Date().toISOString().slice(0, 10) }; showInvestModal.value = true; };
                 const saveInvest = () => {
-                    if (!investForm.value.target || !investForm.value.amount || !investForm.value.accountId) return alert('隢‵撖怠??渲?閮?);
+                    if (!investForm.value.target || !investForm.value.amount || !investForm.value.accountId) return alert('請填寫完整投資資料');
                     const amount = parseInt(investForm.value.amount); const acc = accounts.value.find(a => a.id === investForm.value.accountId);
                     if (acc) { if (investForm.value.type === 'buy') acc.balance -= amount; else acc.balance += amount; }
                     investments.value.push({ id: Date.now(), ...investForm.value, amount }); showInvestModal.value = false;
                 };
                 const deleteInvest = (id) => {
-                    if (!confirm('蝣箏??芷嚗?)) return; const idx = investments.value.findIndex(i => i.id === id);
+                    if (!confirm('確定要刪除這筆投資紀錄嗎？')) return; const idx = investments.value.findIndex(i => i.id === id);
                     if (idx > -1) { const inv = investments.value[idx]; const acc = accounts.value.find(a => a.id === inv.accountId); if (acc) { if (inv.type === 'buy') acc.balance += inv.amount; else acc.balance -= inv.amount; } investments.value.splice(idx, 1); }
                 };
 
                 const syncToCloud = async (isSilent = false) => {
-                    if (!googleSyncUrl.value) { if (!isSilent) alert('隢?頛詨 Google Apps Script 蝬脣?'); return; }
+                    if (!googleSyncUrl.value) { if (!isSilent) alert('請先設定 Google Apps Script 網址'); return; }
                     isSyncing.value = true;
-                    syncStatus.value = '甇??郊銝?..';
+                    syncStatus.value = '上傳中...';
                     try {
                         const payload = {
                             transactions: transactions.value,
@@ -1357,25 +1357,25 @@
                         const result = await res.json();
                         if (!isSilent) {
                             if (result.status === 'success') {
-                                syncStatus.value = '?? ?郊??嚗?;
-                                alert('?? ?遢??嚗?);
+                                syncStatus.value = '上傳成功';
+                                alert('資料已成功同步到雲端');
                             } else {
-                                syncStatus.value = '???郊憭望?嚗?瑼Ｘ蝬脣????身摰?;
-                                alert('???遢憭望?嚗? + (result.message || '?芰?航炊'));
+                                syncStatus.value = '上傳失敗：伺服器回傳錯誤';
+                                alert('同步失敗：' + (result.message || '未知錯誤'));
                             }
                         }
                     } catch (e) {
-                        syncStatus.value = '???郊憭望?嚗?瑼Ｘ蝬脰楝?雯???;
-                        if (!isSilent) alert('???憭望?嚗?);
+                        syncStatus.value = '上傳失敗：連線或格式錯誤';
+                        if (!isSilent) alert('同步失敗，請稍後再試');
                     } finally {
                         isSyncing.value = false;
                     }
                 };
                 const syncFromCloud = async () => {
-                    if (!googleSyncUrl.value) return alert('隢?頛詨蝬脣?');
-                    if (!confirm('撠?閬??函??鞈?嚗Ⅱ摰匱蝥?嚗?)) return;
+                    if (!googleSyncUrl.value) return alert('請先設定雲端同步網址');
+                    if (!confirm('下載雲端資料會覆蓋目前本機資料，確定要繼續嗎？')) return;
                     isSyncing.value = true;
-                    syncStatus.value = '甇???銝?..';
+                    syncStatus.value = '下載中...';
                     try {
                         let url = googleSyncUrl.value.trim();
                         if (googleSheetRange.value) {
@@ -1389,15 +1389,15 @@
                             accounts.value = data.accounts || [];
                             fixedExpenses.value = data.fixedExpenses || [];
                             investments.value = data.investments || [];
-                            syncStatus.value = '????摰?';
-                            alert('????嚗?);
+                            syncStatus.value = '下載成功';
+                            alert('已成功從雲端載入資料');
                         } else {
-                            syncStatus.value = '????憭望?嚗??唾??撘?蝚艾?;
-                            alert('鞈??澆?銝泵');
+                            syncStatus.value = '下載失敗：回傳資料格式不正確';
+                            alert('雲端回傳的資料格式不正確');
                         }
                     } catch (e) {
-                        syncStatus.value = '????憭望?嚗?蝣箄?蝬脣??雯頝胯?;
-                        alert('???憭望???);
+                        syncStatus.value = '下載失敗：讀取或解析錯誤';
+                        alert('下載失敗，請稍後再試');
                     } finally {
                         isSyncing.value = false;
                     }
@@ -1415,7 +1415,7 @@
                             csvContent += `${dateParts[0]},${parseInt(dateParts[1])},${parseInt(dateParts[2])},${(t.type === 'expense' || t.type === 'transfer') ? '?臬' : '?嗅'},${secureCSV(t.category)},${secureCSV(t.note)},${finalAmount}\n`;
                         });
                         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `閮董?敦.csv`; link.click();
-                    } catch (e) { alert('?臬?航炊'); }
+                    } catch (e) { alert('匯出失敗'); }
                 };
                 const triggerFileInput = () => document.getElementById('fileInput').click();
                 const handleFileUpload = (event) => {
@@ -1435,9 +1435,9 @@
                             addedCount++;
                         }
                         if (addedCount > 0) alert(`已匯入 ${addedCount} 筆`);
-                    } catch (e) { alert('?臬?航炊'); }
+                    } catch (e) { alert('匯入失敗'); }
                 };
-                const clearAllData = () => { if (prompt('隢撓??"delete" 靘Ⅱ隤?歹?') === 'delete') { transactions.value = []; accounts.value = []; fixedExpenses.value = []; investments.value = []; if (typeof localforage !== 'undefined') { localforage.setItem('v_transactions', []); localforage.setItem('v_accounts', []); localforage.setItem('v_fixedExpenses', []); localforage.setItem('v_investments', []); } alert('撌脫???); } };
+                const clearAllData = () => { if (prompt('輸入 "delete" 以清除所有資料') === 'delete') { transactions.value = []; accounts.value = []; fixedExpenses.value = []; investments.value = []; if (typeof localforage !== 'undefined') { localforage.setItem('v_transactions', []); localforage.setItem('v_accounts', []); localforage.setItem('v_fixedExpenses', []); localforage.setItem('v_investments', []); } alert('資料已清除'); } };
                 const installPwaApp = async () => {
                     if (!deferredInstallPrompt.value) return;
                     deferredInstallPrompt.value.prompt();
