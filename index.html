@@ -293,7 +293,7 @@
                 <button @click="showTransfersModal=false" style="border:none;background:none;font-size:28px;cursor:pointer;color:var(--text-muted);">&times;</button>
             </div>
             <div style="flex:1; overflow-y:auto; padding-bottom: 10px;">
-                <div v-if="transferTransactions.length === 0" class="empty-state" style="margin-top: 20px;">撠鞈?瘚???/div>
+                <div v-if="transferTransactions.length === 0" class="empty-state" style="margin-top: 20px;">目前沒有轉帳紀錄</div>
                 <div class="list-card" v-for="tx in transferTransactions" :key="tx.id">
                     <div class="icon-circle" style="background: #e3f2fd; color: #0984e3;">
                         ??
@@ -332,7 +332,7 @@
                 <div style="width:24px;"></div>
             </div>
             <div style="text-align: center; padding-top: 5px;">
-                <div style="font-size: 13px; opacity: 0.9; margin-bottom: 5px;">蝮質???/div>
+                <div style="font-size: 13px; opacity: 0.9; margin-bottom: 5px;">目前總資產</div>
                 <div style="font-size: 32px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">{{ formatCurrency(totalAssets) }}</div>
             </div>
             
@@ -351,7 +351,7 @@
         <div class="content-area" style="padding-top: 25px;">
             <div style="display: flex; gap: 10px;">
                 <button class="btn-block" @click="openAddAcc">+ ?啣?撣單/?∠?</button>
-                <button class="btn-block" @click="openAddTransfer" style="border: 2px solid var(--primary); background: transparent;">??鞈?瘚?/button>
+                <button class="btn-block" @click="openAddTransfer" style="border: 2px solid var(--primary); background: transparent;">新增轉帳</button>
             </div>
 
             <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
@@ -368,7 +368,7 @@
             </div>
             <div class="list-card" v-for="acc in filteredAccountsByType" :key="acc.id">
                 <div class="icon-circle" :style="acc.type === 'credit' ? 'background: #fff0f3; color: var(--danger);' : 'background: #e3f2fd; color: #0984e3;'">
-                    {{ typeLabel[acc.type]?.[0] || '撣? }}
+                    {{ typeLabel[acc.type]?.[0] || '戶' }}
                 </div>
                 <div class="item-details">
                     <div class="item-header">
@@ -391,7 +391,7 @@
                 </div>
             </div>
 
-            <div class="group-header" style="margin-top: 25px; display: none;">餈?鞈?瘚?/div>
+            <div class="group-header" style="margin-top: 25px; display: none;">轉帳紀錄</div>
             <div v-if="transferTransactions.length === 0" class="empty-state" style="margin-top: 20px; display: none;">
                 撠鞈?瘚???
             </div>
@@ -422,7 +422,7 @@
     </div>
     
     <div v-show="currentPage === 'funds'" style="position: fixed; right: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 100; pointer-events: none;">
-        <button class="analysis-fab" @click="showTransfersModal = true" title="?亦?鞈?瘚??? style="bottom: 155px; pointer-events: auto;">??/button>
+        <button class="analysis-fab" @click="showTransfersModal = true" title="查看轉帳紀錄" style="bottom: 155px; pointer-events: auto;">↔</button>
     </div>
 
     <div v-show="currentPage === 'fixed'" style="display: flex; flex-direction: column; height: 100%;">
@@ -441,15 +441,15 @@
             
             <div class="list-card" v-for="item in loansAndInsurances" :key="item.id" style="flex-direction: column; align-items: stretch;">
                 <div style="display: flex; align-items: center;">
-                    <div class="icon-circle" style="background: #ffeff1; color: var(--danger);">{{ item.type === 'loan' ? '?' : (item.type === 'insurance' ? '?儭? : '??') }}</div>
+                    <div class="icon-circle" style="background: #ffeff1; color: var(--danger);">{{ item.type === 'loan' ? '貸' : (item.type === 'insurance' ? '保' : '訂') }}</div>
                     <div class="item-details">
                         <div class="item-header">
                             <span class="item-title">{{ item.name }}</span>
-                            <span class="item-amount expense">{{ formatCurrency(item.amount) }} <span style="font-size: 12px; color: var(--text-muted);">/??/span></span>
+                            <span class="item-amount expense">{{ formatCurrency(item.amount) }} <span style="font-size: 12px; color: var(--text-muted);">/期</span></span>
                         </div>
                         <div class="item-footer">
                             <span class="item-subtitle">
-                                {{ item.cycle === 'monthly' ? '瘥? ' + item.deductionDate + ' ?? : '瘥僑 ' + (item.deductionMonth || 1) + ' ??' + item.deductionDate + ' ?? }}??像
+                                {{ item.cycle === 'monthly' ? ('每月 ' + item.deductionDate + ' 日扣款') : ('每年 ' + (item.deductionMonth || 1) + ' 月 ' + item.deductionDate + ' 日扣款') }}
                             </span>
                             <div class="btn-group-sm">
                                 <button class="action-btn" @click="openPayModal(item)">蝜喟?</button>
@@ -501,13 +501,13 @@
                 <div v-if="investAccounts.length === 0" class="empty-state" style="margin: 0; width: 100%; text-align: left; font-size: 13px;">撠閮剖???撣單嚗??唾??恣?身摰?/div>
             </div>
 
-            <button class="btn-block" @click="openAddInvest">+ ?啣???蝝??/button>
+            <button class="btn-block" @click="openAddInvest">+ 新增投資紀錄</button>
             <div class="group-header">?函????敦 (銝??仿????</div>
             <div v-if="investments.length === 0" class="empty-state">撠??蝝??暺?銝?啣?</div>
             
             <div class="list-card" v-for="inv in sortedInvestments" :key="inv.id">
                 <div class="icon-circle" :style="inv.type === 'buy' ? 'background: #e3f2fd; color: #0984e3;' : 'background: #e8f8f5; color: var(--success);'">
-                    {{ inv.type === 'buy' ? '鞎? : (inv.type === 'sell' ? '鞈? : '??) }}
+                    {{ inv.type === 'buy' ? '買' : (inv.type === 'sell' ? '賣' : '息') }}
                 </div>
                 <div class="item-details">
                     <div class="item-header">
@@ -531,7 +531,7 @@
         <div class="header">
             <div class="header-top">
                 <div style="width:24px;"></div>
-                <div class="header-title">鞈??身摰?/div>
+                <div class="header-title">資料設定</div>
                 <div style="width:24px;"></div>
             </div>
         </div>
@@ -546,9 +546,9 @@
 
             <div class="group-header">銝駁?閮剖?</div>
             <div class="list-card" style="flex-direction: column; align-items: stretch; gap: 10px;">
-                <div style="font-size: 14px; color: var(--text-main); margin-bottom: 5px;">??鈭?/ ?蜓憿??孵?憭?雿輻?摨艾?/div>
+                <div style="font-size: 14px; color: var(--text-main); margin-bottom: 5px;">切換深色或淺色主題顯示</div>
                 <button class="btn-block" @click="isDarkMode = !isDarkMode" style="margin-bottom: 0; border-color: var(--primary); color: var(--primary); background: transparent;">
-                    {{ isDarkMode ? '?? 撌脣??冽?暺芋撘? : '?儭?????璅∪?' }}
+                    {{ isDarkMode ? '切換為淺色模式' : '切換為深色模式' }}
                 </button>
             </div>
 
@@ -631,7 +631,7 @@
 
     <div class="modal-overlay" v-show="showTxModal">
         <div class="modal-content">
-            <div class="modal-header">{{ editTxId ? '蝺刻摩蝝?? : '?啣?蝝?? }}</div>
+            <div class="modal-header">{{ editTxId ? '編輯交易' : '新增交易' }}</div>
             
             <div class="type-toggle">
                 <div class="type-toggle-btn" :class="{'active-expense': txForm.type === 'expense'}" @click="txForm.type = 'expense'">?臬</div>
@@ -651,7 +651,7 @@
                     <button v-for="n in 9" :key="'num-'+n" @click="inputNum(n)" class="numpad-btn">{{ n }}</button>
                     <button @click="inputNum('C')" class="numpad-btn btn-c">C</button>
                     <button @click="inputNum(0)" class="numpad-btn">0</button>
-                    <button @click="inputNum('Backspace')" class="numpad-btn btn-del">??/button>
+                    <button @click="inputNum('Backspace')" class="numpad-btn btn-del">刪除</button>
                 </div>
             </div>
 
@@ -677,7 +677,7 @@
             <div class="form-group">
                 <label>?酉 (?臬翰???豢??芾?頛詨)</label>
                 <div class="quick-tags" style="margin-bottom: 8px;">
-                    <span class="quick-tag" v-for="n in ['?拚?', '??', '??', '憌脫?', '鈭日?, '?亦??, '頧董']" @click="txForm.note = n">{{ n }}</span>
+                    <span class="quick-tag" v-for="n in ['午餐', '晚餐', '咖啡', '日用品', '交通', '娛樂', '轉帳']" @click="txForm.note = n">{{ n }}</span>
                 </div>
                 <input type="text" class="form-control" v-model="txForm.note" placeholder="?啣??酉...">
             </div>
@@ -694,7 +694,7 @@
             <div class="form-group">
                 <label>?迂 (?臬翰???豢??芾?頛詨)</label>
                 <div class="quick-tags" style="margin-bottom: 8px;">
-                    <span class="quick-tag" v-for="n in ['?唳', '?陸', '撖', '?控', '銝凋縑', 'LinePay', '銵', '????]" @click="accForm.name = n">{{ n }}</span>
+                    <span class="quick-tag" v-for="n in ['玉山銀行', '台新銀行', '國泰世華', '永豐銀行', '現金錢包', 'LinePay', '街口支付', '悠遊卡']" @click="accForm.name = n">{{ n }}</span>
                 </div>
                 <input type="text" class="form-control" v-model="accForm.name" placeholder="靘?嚗?圈?銵inePay???">
             </div>
@@ -719,12 +719,12 @@
             </div>
             
             <label class="checkbox-group" v-if="['bank', 'wallet', 'epay'].includes(accForm.type)">
-                <input type="checkbox" v-model="accForm.isInvestAccount" style="width: 18px; height: 18px;"> 閮剔??撣單 (憿舐內?潭?鞈???
+                <input type="checkbox" v-model="accForm.isInvestAccount" style="width: 18px; height: 18px;"> 設為投資帳戶（可用於投資紀錄）
             </label>
 
             <div class="form-group" v-if="accForm.type === 'credit'">
-                <label>蝮賡?摨?/label>
-                <div class="form-control-sim" @click="openGlobalNumpad(accForm.creditLimit, v => accForm.creditLimit = v)" placeholder="頛詨靽∠?⊿?摨?>{{ accForm.creditLimit !== '' ? accForm.creditLimit : '' }}</div>
+                <label>信用額度</label>
+                <div class="form-control-sim" @click="openGlobalNumpad(accForm.creditLimit, v => accForm.creditLimit = v)" placeholder="請輸入信用額度">{{ accForm.creditLimit !== '' ? accForm.creditLimit : '' }}</div>
             </div>
             <div class="form-group" v-if="accForm.type === 'credit'"><div style="display:flex; gap:10px;"><div style="flex:1;"><label>蝯董??(1-31)</label><input type="number" class="form-control" v-model="accForm.closingDate"></div><div style="flex:1;"><label>蝜單狡??(1-31)</label><input type="number" class="form-control" v-model="accForm.dueDate"></div></div></div>
             <div class="form-group" v-if="accForm.type === 'credit'"><label>?芸???像??(?詨‵ 1-31)</label><input type="number" class="form-control" v-model="accForm.autoPayDate"></div>
@@ -750,22 +750,22 @@
 
     <div class="modal-overlay" v-show="showFixedModal">
         <div class="modal-content">
-            <div class="modal-header">{{ editFixedId ? '蝺刻摩撣喳?閮剖?' : '?啣?撣喳?閮剖?' }}</div>
-            <div class="form-group"><label>撣喳??迂</label><input type="text" class="form-control" v-model="fixedForm.name" placeholder="靘?嚗鞎詻??etflix"></div>
+            <div class="modal-header">{{ editFixedId ? '編輯固定支出' : '新增固定支出' }}</div>
+            <div class="form-group"><label>名稱</label><input type="text" class="form-control" v-model="fixedForm.name" placeholder="例如 房貸、保費、Netflix"></div>
             <div class="form-group">
-                <label>憿?</label>
+                <label>類型</label>
                 <select class="form-control" v-model="fixedForm.type">
-                    <option value="loan">? 鞎豢狡</option>
-                    <option value="insurance">?儭?靽</option>
-                    <option value="subscription">?? 閮/?箏?鞎?(?餉店鞎餌?)</option>
+                    <option value="loan">貸款</option>
+                    <option value="insurance">保險</option>
+                    <option value="subscription">訂閱服務</option>
                 </select>
             </div>
-            <div class="form-group"><label>蝜唾祥?望?</label><select class="form-control" v-model="fixedForm.cycle"><option value="monthly">瘥?</option><option value="yearly">瘥僑</option></select></div>
-            <div class="form-group" v-if="fixedForm.cycle === 'monthly'"><label>??狡/蝜單狡??1~31)</label><input type="number" class="form-control" v-model="fixedForm.deductionDate"></div>
-            <div class="form-group" v-if="fixedForm.cycle === 'yearly'"><label>??狡/蝜單狡?交?</label><div style="display:flex; gap:10px;"><select class="form-control" v-model="fixedForm.deductionMonth"><option v-for="m in 12" :key="m" :value="m">{{ m }}??/option></select><input type="number" class="form-control" v-model="fixedForm.deductionDate" placeholder="??1~31)"></div></div>
+            <div class="form-group"><label>週期</label><select class="form-control" v-model="fixedForm.cycle"><option value="monthly">每月</option><option value="yearly">每年</option></select></div>
+            <div class="form-group" v-if="fixedForm.cycle === 'monthly'"><label>扣款日（1-31）</label><input type="number" class="form-control" v-model="fixedForm.deductionDate"></div>
+            <div class="form-group" v-if="fixedForm.cycle === 'yearly'"><label>扣款日期</label><div style="display:flex; gap:10px;"><select class="form-control" v-model="fixedForm.deductionMonth"><option v-for="m in 12" :key="m" :value="m">{{ m }} 月</option></select><input type="number" class="form-control" v-model="fixedForm.deductionDate" placeholder="日期 1-31"></div></div>
             <div class="form-group">
-                <label>瘥??像??</label>
-                <div class="form-control-sim" @click="openGlobalNumpad(fixedForm.amount, v => fixedForm.amount = v)" placeholder="頛詨?像??">{{ fixedForm.amount !== '' ? fixedForm.amount : '' }}</div>
+                <label>每期金額</label>
+                <div class="form-control-sim" @click="openGlobalNumpad(fixedForm.amount, v => fixedForm.amount = v)" placeholder="請輸入每期金額">{{ fixedForm.amount !== '' ? fixedForm.amount : '' }}</div>
             </div>
             
             <label class="checkbox-group"><input type="checkbox" v-model="fixedForm.hasTotal" style="width: 18px; height: 18px;"> 閮?蝮賡??像鞎駁脣漲</label>
@@ -790,7 +790,7 @@
 
     <div class="modal-overlay" v-show="showInvestModal">
         <div class="modal-content">
-            <div class="modal-header">?啣???蝝??/div>
+            <div class="modal-header">新增投資紀錄</div>
             <div class="type-toggle">
                 <div class="type-toggle-btn" :class="{'active-expense': investForm.type === 'buy'}" @click="investForm.type = 'buy'">鞎瑕</div>
                 <div class="type-toggle-btn" :class="{'active-income': investForm.type === 'sell'}" @click="investForm.type = 'sell'">鞈?</div>
@@ -799,9 +799,9 @@
             <div class="form-group">
                 <label>??璅??迂</label>
                 <div class="quick-tags" style="margin-bottom: 8px;">
-                    <span class="quick-tag" v-for="t in ['0050', '0056', '00878', '?啁???, '蝢?', '摰?']" @click="investForm.target = t">{{ t }}</span>
+                    <span class="quick-tag" v-for="t in ['0050', '0056', '00878', '台積電', '高股息', '現金股利']" @click="investForm.target = t">{{ t }}</span>
                 </div>
-                <input type="text" class="form-control" v-model="investForm.target" placeholder="憒?0050, ?啁???>
+                <input type="text" class="form-control" v-model="investForm.target" placeholder="例如 0050、台積電">
             </div>
             <div class="form-group">
                 <label>??</label>
@@ -824,7 +824,7 @@
                 <button v-for="n in 9" :key="'gnum-'+n" @click="inputGlobalNum(n)" class="numpad-btn">{{ n }}</button>
                 <button @click="inputGlobalNum('C')" class="numpad-btn btn-c">C</button>
                 <button @click="inputGlobalNum(0)" class="numpad-btn">0</button>
-                <button @click="inputGlobalNum('Backspace')" class="numpad-btn btn-del">??/button>
+                <button @click="inputGlobalNum('Backspace')" class="numpad-btn btn-del">刪除</button>
                 <button @click="inputGlobalNum('-')" class="numpad-btn" style="background: var(--tag-bg);">-</button>
             </div>
             <button class="btn-block" style="margin-bottom: 0; background: var(--primary); color: white; border: none; font-size: 18px;" @click="confirmGlobalNumpad">蝣箄?</button>
@@ -838,7 +838,7 @@
                 <button @click="showExpenseAnalysis=false" style="border:none;background:none;font-size:28px;cursor:pointer;color:var(--text-muted);">&times;</button>
             </div>
             <div style="flex:1; overflow-y:auto; padding-bottom: 10px;">
-                <div v-if="expenseAnalysis.length === 0" class="empty-state" style="margin-top: 20px;">?祆?撠?臬鞈??臬???/div>
+                <div v-if="expenseAnalysis.length === 0" class="empty-state" style="margin-top: 20px;">目前沒有可分析的支出資料</div>
                 <div class="analysis-row" v-for="item in expenseAnalysis" :key="item.category" style="padding: 10px 0; border-bottom: 1px solid var(--border);">
                     <div class="analysis-label" style="width:auto; flex: 1;">{{ item.category }}</div>
                     <div class="analysis-bar-bg" style="flex: 2;">
@@ -1120,8 +1120,8 @@
                 const payFixedState = ref({ item: null, accountId: '', date: new Date().toISOString().slice(0, 10) });
                 const investForm = ref({ type: 'buy', target: '', amount: '', accountId: '', date: new Date().toISOString().slice(0, 10) });
 
-                const expenseCategories = ['擗ㄡ', '鈭日?, '鞈潛', '憡?', '?暑', '?脖耨', '?怎?', '撣喳'];
-                const incomeCategories = ['?芣偌', '??', '???', '?嗥??, '?甈?, '?嗡?'];
+                const expenseCategories = ['飲食', '交通', '轉帳', '娛樂', '醫療', '家居', '其他', '繳費'];
+                const incomeCategories = ['薪水', '獎金', '投資收益', '副業收入', '退款', '其他'];
 
                 const currentCategories = computed(() => txForm.value.type === 'expense' ? expenseCategories : incomeCategories);
 
@@ -1406,15 +1406,15 @@
                 const secureCSV = (val) => { if (!val) return '""'; let str = String(val).replace(/"/g, '""'); if (/^[=\+\-@\t\r]/.test(str)) str = "'" + str; return `"${str}"`; };
                 const exportCSV = () => {
                     try {
-                        let csvContent = "\uFEFF撟??????嗅/?臬,憿,?酉,??\n"; let filteredTxs = [...transactions.value];
+                        let csvContent = "\uFEFF年,月,日,收支,分類,備註,金額\n"; let filteredTxs = [...transactions.value];
                         if (exportStartDate.value) filteredTxs = filteredTxs.filter(t => t.date >= exportStartDate.value);
                         if (exportEndDate.value) filteredTxs = filteredTxs.filter(t => t.date <= exportEndDate.value);
                         filteredTxs.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).forEach(t => {
                             const dateParts = t.date.split('-'); if (dateParts.length !== 3) return;
                             const finalAmount = (t.type === 'expense' || t.type === 'transfer') ? -t.amount : t.amount;
-                            csvContent += `${dateParts[0]},${parseInt(dateParts[1])},${parseInt(dateParts[2])},${(t.type === 'expense' || t.type === 'transfer') ? '?臬' : '?嗅'},${secureCSV(t.category)},${secureCSV(t.note)},${finalAmount}\n`;
+                            csvContent += `${dateParts[0]},${parseInt(dateParts[1])},${parseInt(dateParts[2])},${(t.type === 'expense' || t.type === 'transfer') ? '支出' : '收入'},${secureCSV(t.category)},${secureCSV(t.note)},${finalAmount}\n`;
                         });
-                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `閮董?敦.csv`; link.click();
+                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `記帳資料.csv`; link.click();
                     } catch (e) { alert('匯出失敗'); }
                 };
                 const triggerFileInput = () => document.getElementById('fileInput').click();
@@ -1430,7 +1430,7 @@
                             const clean = (val) => val ? val.replace(/^"|"$/g, '').replace(/""/g, '"').replace(/^'/, '') : ''; 
                             const year = parseInt(clean(row[0]).replace(/,/g, '')); const month = parseInt(clean(row[1])); const day = parseInt(clean(row[2])); let rawAmount = parseInt(clean(row[6]).replace(/,/g, ''));
                             if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(rawAmount)) continue;
-                            const type = (clean(row[3]).includes('?嗅') || rawAmount > 0) ? 'income' : 'expense';
+                            const type = (clean(row[3]).includes('收入') || rawAmount > 0) ? 'income' : 'expense';
                             transactions.value.push({ id: Date.now() + i + Math.floor(Math.random()*1000), type, date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`, category: clean(row[4]), amount: Math.abs(rawAmount), accountId: accounts.value.length ? accounts.value[0].id : '', note: clean(row[5]) });
                             addedCount++;
                         }
@@ -1454,7 +1454,7 @@
                     return new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(val || 0);
                 };
                 
-                const typeLabel = { 'bank': '?', 'wallet': '?', 'epay': '?', 'thirdparty': '?屁', 'credit': '?', 'iccard': '?牧' };
+                const typeLabel = { 'bank': '銀行', 'wallet': '現金', 'epay': '支付', 'thirdparty': '代管', 'credit': '信用', 'iccard': '票卡' };
 
                 return {
                     currentPage, selectedMonth, transactions, accounts, fixedExpenses, currentCategories,
