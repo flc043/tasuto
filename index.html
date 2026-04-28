@@ -892,6 +892,7 @@
                 const transactions = ref([]);
                 const accounts = ref([{ id: 1, name: '現金錢包', type: 'wallet', balance: 0, isInvestAccount: false }]);
                 const fixedExpenses = ref([]);
+                const designatedInvestAccountId = ref('');
                 const investments = ref([]);
                 const notifications = ref([]);
                 const unreadNotifs = ref(0);
@@ -937,6 +938,7 @@
                             await loadWithMigration('v_transactions', transactions, []);
                             await loadWithMigration('v_accounts', accounts, [{ id: 1, name: '現金錢包', type: 'wallet', balance: 0, isInvestAccount: false }]);
                             await loadWithMigration('v_fixedExpenses', fixedExpenses, []);
+                            await loadWithMigration('v_investAccountId', designatedInvestAccountId, '');
                             await loadWithMigration('v_investments', investments, []);
                             await loadWithMigration('v_notifications', notifications, []);
                             await loadWithMigration('v_googleSyncUrl', googleSyncUrl, '');
@@ -948,6 +950,7 @@
                             watch(transactions, (val) => localforage.setItem('v_transactions', JSON.parse(JSON.stringify(val))), { deep: true });
                             watch(accounts, (val) => localforage.setItem('v_accounts', JSON.parse(JSON.stringify(val))), { deep: true });
                             watch(fixedExpenses, (val) => localforage.setItem('v_fixedExpenses', JSON.parse(JSON.stringify(val))), { deep: true });
+                            watch(designatedInvestAccountId, (val) => localforage.setItem('v_investAccountId', val));
                             watch(investments, (val) => localforage.setItem('v_investments', JSON.parse(JSON.stringify(val))), { deep: true });
                             watch(notifications, (val) => localforage.setItem('v_notifications', JSON.parse(JSON.stringify(val))), { deep: true });
                             watch(googleSyncUrl, (val) => localforage.setItem('v_googleSyncUrl', val));
@@ -1459,7 +1462,7 @@
 
                 return {
                     currentPage, selectedMonth, transactions, accounts, fixedExpenses, currentCategories,
-isPrivacyMode, monthlyBudget, showExpenseAnalysis, assetAllocations, accountTypeFilter, filteredAccountsByType,
+isPrivacyMode, monthlyBudget, showExpenseAnalysis, assetAllocations, accountTypeFilter, filteredAccountsByType, designatedInvestAccountId,
                     
                     showTxModal, showAccModal, showTransferModal, showFixedModal, showPayFixedModal, showInvestModal, showNotifModal, showExpenseAnalysis, showTransfersModal,
                     editTxId, editAccId, editFixedId, txForm, accForm, transferForm, fixedForm, payFixedState, investForm,
@@ -1501,6 +1504,3 @@ isPrivacyMode, monthlyBudget, showExpenseAnalysis, assetAllocations, accountType
 </script>
 </body>
 </html>
-
-
-
