@@ -1327,7 +1327,14 @@
                             investments: investments.value,
                             range: googleSheetRange.value || ''
                         };
-                        const res = await fetch(googleSyncUrl.value.trim(), { method: 'POST', headers: { 'Content-Type': 'application/json;charset=utf-8' }, body: JSON.stringify(payload) });
+                        const formBody = new URLSearchParams({
+                            payload: JSON.stringify(payload)
+                        }).toString();
+                        const res = await fetch(googleSyncUrl.value.trim(), {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                            body: formBody
+                        });
                         const result = await res.json();
                         if (!isSilent) {
                             if (result.status === 'success') {
