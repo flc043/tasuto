@@ -206,13 +206,20 @@
         <div v-else style="margin: 0 20px 15px 20px; font-size: 13px; color: var(--text-muted);">尚未設定固定支出</div>
 
         <div class="analysis-panel" v-if="expenseAnalysis.length > 0 && !searchQuery">
-            <div style="font-size: 14px; font-weight: bold; margin-bottom: 15px; color: var(--text-main);">本月支出分析 (Top 5)</div>
-            <div class="analysis-row" v-for="item in expenseAnalysis" :key="item.category">
-                <div class="analysis-label">{{ item.category }}</div>
-                <div class="analysis-bar-bg">
-                    <div class="analysis-bar-fill" :style="{ width: item.percentage + '%' }"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div style="font-size: 14px; font-weight: bold; color: var(--text-main);">本月支出分析 (Top 5)</div>
+                <button class="btn btn-cancel" style="padding: 8px 12px; font-size: 13px;" @click="showExpenseAnalysis = !showExpenseAnalysis">
+                    {{ showExpenseAnalysis ? '收起' : '展開' }}
+                </button>
+            </div>
+            <div v-show="showExpenseAnalysis">
+                <div class="analysis-row" v-for="item in expenseAnalysis" :key="item.category">
+                    <div class="analysis-label">{{ item.category }}</div>
+                    <div class="analysis-bar-bg">
+                        <div class="analysis-bar-fill" :style="{ width: item.percentage + '%' }"></div>
+                    </div>
+                    <div class="analysis-amount">{{ formatCurrency(item.amount) }}</div>
                 </div>
-                <div class="analysis-amount">{{ formatCurrency(item.amount) }}</div>
             </div>
         </div>
 
@@ -765,6 +772,7 @@
                 const searchQuery = ref('');
                 const googleSyncUrl = ref('');
                 const monthlyBudget = ref(0);
+                const showExpenseAnalysis = ref(false);
 
                 let syncTimeout = null;
                 let isAppLoaded = false; 
@@ -1208,7 +1216,7 @@
 
                 return {
                     currentPage, selectedMonth, transactions, accounts, fixedExpenses, currentCategories,
-                    isPrivacyMode, monthlyBudget, assetAllocations, 
+                    isPrivacyMode, monthlyBudget, showExpenseAnalysis, assetAllocations, 
                     
                     showTxModal, showAccModal, showTransferModal, showFixedModal, showPayFixedModal, showInvestModal, showNotifModal,
                     editTxId, editAccId, editFixedId, txForm, accForm, transferForm, fixedForm, payFixedState, investForm,
