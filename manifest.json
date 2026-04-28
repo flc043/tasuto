@@ -1,29 +1,29 @@
 {
-  "id": "/tasuto/",
-  "name": "個人記帳與資金管理",
-  "short_name": "記帳",
-  "description": "個人收支、資金、帳務與投資管理工具",
-  "start_url": "/tasuto/index.html",
-  "scope": "/tasuto/",
+  "id": "./",
+  "name": "Tasuto Money",
+  "short_name": "Tasuto",
+  "description": "Personal finance web app",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f5f6fa",
   "theme_color": "#f7b731",
   "icons": [
     {
-      "src": "/tasuto/icons/icon-192.png",
+      "src": "./icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/tasuto/icons/icon-512.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/tasuto/icons/icon-512-maskable.png",
+      "src": "./icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
