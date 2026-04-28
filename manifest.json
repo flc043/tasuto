@@ -1,7 +1,7 @@
 {
   "name": "個人記帳 PRO",
   "short_name": "記帳PRO",
-  "start_url": "money.html",
+  "start_url": "index.html",
   "display": "fullscreen",
   "background_color": "#f5f7fa",
   "theme_color": "#f7b731",
