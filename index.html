@@ -660,7 +660,7 @@
                 <div class="quick-tags">
                     <span class="quick-tag" :class="{selected: txForm.category === cat}" v-for="cat in currentCategories" :key="'cat-'+cat" @click="txForm.category = cat">{{ cat }}</span>
                 </div>
-                <input type="text" class="form-control" v-model="txForm.category" placeholder="頛詨???憿?>
+                <input type="text" class="form-control" v-model="txForm.category" placeholder="請輸入分類">
             </div>
             
             <div class="form-group">
@@ -701,12 +701,12 @@
             <div class="form-group">
                 <label>憿?</label>
                 <select class="form-control" v-model="accForm.type">
-                    <option value="bank">? ?銵董??/option>
-                    <option value="wallet">? ?暸??Ｗ?</option>
-                    <option value="epay">? ?餃??臭? / E-payment</option>
-                    <option value="thirdparty">?屁 蝚砌??寞隞?(隞?隞??)</option>
-                    <option value="credit">? 靽∠??/option>
-                    <option value="iccard">?牧 ?餃?蟡刻? (????銝?⊿?</option>
+                    <option value="bank">銀行帳戶</option>
+                    <option value="wallet">現金錢包</option>
+                    <option value="epay">電子支付 / E-payment</option>
+                    <option value="thirdparty">第三方代管帳戶</option>
+                    <option value="credit">信用卡</option>
+                    <option value="iccard">票卡 / 儲值卡</option>
                 </select>
             </div>
             <div class="form-group" v-if="accForm.type !== 'thirdparty'">
@@ -797,7 +797,7 @@
                 <div class="type-toggle-btn" :class="{'active-income': investForm.type === 'dividend'}" @click="investForm.type = 'dividend'">?</div>
             </div>
             <div class="form-group">
-                <label>??璅??迂</label>
+                <label>投資標的名稱</label>
                 <div class="quick-tags" style="margin-bottom: 8px;">
                     <span class="quick-tag" v-for="t in ['0050', '0056', '00878', '台積電', '高股息', '現金股利']" @click="investForm.target = t">{{ t }}</span>
                 </div>
@@ -1312,11 +1312,11 @@
                     const totalPositive = cash + bank + epay + iccard + invest;
                     if (totalPositive === 0) return [];
                     const result = [];
-                    if (bank > 0) result.push({ name: '?銵?, amount: bank, percentage: Math.round(bank/totalPositive*100), color: '#3498db' });
-                    if (cash > 0) result.push({ name: '?暸?', amount: cash, percentage: Math.round(cash/totalPositive*100), color: '#2ecc71' });
-                    if (invest > 0) result.push({ name: '??', amount: invest, percentage: Math.round(invest/totalPositive*100), color: '#9b59b6' });
-                    if (epay > 0) result.push({ name: '?餅', amount: epay, percentage: Math.round(epay/totalPositive*100), color: '#f1c40f' });
-                    if (iccard > 0) result.push({ name: '蟡刻?', amount: iccard, percentage: Math.round(iccard/totalPositive*100), color: '#e67e22' });
+                    if (bank > 0) result.push({ name: '銀行', amount: bank, percentage: Math.round(bank/totalPositive*100), color: '#3498db' });
+                    if (cash > 0) result.push({ name: '現金', amount: cash, percentage: Math.round(cash/totalPositive*100), color: '#2ecc71' });
+                    if (invest > 0) result.push({ name: '投資', amount: invest, percentage: Math.round(invest/totalPositive*100), color: '#9b59b6' });
+                    if (epay > 0) result.push({ name: '支付', amount: epay, percentage: Math.round(epay/totalPositive*100), color: '#f1c40f' });
+                    if (iccard > 0) result.push({ name: '票卡', amount: iccard, percentage: Math.round(iccard/totalPositive*100), color: '#e67e22' });
                     const totalPct = result.reduce((sum, item) => sum + item.percentage, 0);
                     if (result.length > 0 && totalPct !== 100) result[0].percentage += (100 - totalPct);
                     return result.sort((a,b) => b.amount - a.amount);
