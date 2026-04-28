@@ -12,7 +12,16 @@
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f7b731' rx='20'/%3E%3Ctext y='56' x='50' font-size='60' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%92%B0%3C/text%3E%3C/svg%3E">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='56' x='50' font-size='70' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%92%B0%3C/text%3E%3C/svg%3E">
-    <link rel="manifest" href="manifest.json">
+    <script>
+        (function () {
+            const isWebContext = window.location.protocol === 'http:' || window.location.protocol === 'https:';
+            if (!isWebContext) return;
+            const manifestLink = document.createElement('link');
+            manifestLink.rel = 'manifest';
+            manifestLink.href = 'manifest.json';
+            document.head.appendChild(manifestLink);
+        })();
+    </script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
@@ -36,6 +45,28 @@
             --key-press: #f1f2f6;
             --input-bg: #f5f6fa;
         }
+
+        .dark-mode {
+            --primary: #5b7aa5;
+            --primary-dark: #9bb3d7;
+            --danger: #ff7675;
+            --success: #4cd137;
+            --bg: #111823;
+            --card-bg: #1f2431;
+            --text-main: #f4f7fb;
+            --text-muted: #98a8bd;
+            --border: #273044;
+            --tag-bg: #17212c;
+            --tag-active-bg: #22304a;
+            --keyboard-bg: #16222f;
+            --key-bg: #1d2939;
+            --key-press: #33425a;
+            --input-bg: #16212f;
+        }
+
+        .dark-mode .search-bar { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18); }
+        .dark-mode .list-card { box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
+        .dark-mode .header { box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'PingFang TC', 'Microsoft JhengHei', -apple-system, sans-serif; }
         body { background-color: var(--bg); display: flex; justify-content: center; height: 100vh; height: 100dvh; overflow: hidden; }
@@ -145,6 +176,26 @@
         .numpad-btn:active { background: var(--key-press); }
         .btn-c { background: #5c2c2c; color: #ff7675; }
         .btn-del { background: var(--border); }
+        .analysis-fab {
+            position: absolute;
+            bottom: 155px;
+            right: 25px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: var(--primary);
+            color: white;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 12;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .analysis-fab:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
     </style>
 </head>
 <body>
@@ -205,27 +256,13 @@
         </div>
         <div v-else style="margin: 0 20px 15px 20px; font-size: 13px; color: var(--text-muted);">尚未設定固定支出</div>
 
-        <div class="analysis-panel" v-if="expenseAnalysis.length > 0 && !searchQuery">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <div style="font-size: 14px; font-weight: bold; color: var(--text-main);">本月支出分析 (Top 5)</div>
-                <button class="btn btn-cancel" style="padding: 8px 12px; font-size: 13px;" @click="showExpenseAnalysis = !showExpenseAnalysis">
-                    {{ showExpenseAnalysis ? '收起' : '展開' }}
-                </button>
-            </div>
-            <div v-show="showExpenseAnalysis">
-                <div class="analysis-row" v-for="item in expenseAnalysis" :key="item.category">
-                    <div class="analysis-label">{{ item.category }}</div>
-                    <div class="analysis-bar-bg">
-                        <div class="analysis-bar-fill" :style="{ width: item.percentage + '%' }"></div>
-                    </div>
-                    <div class="analysis-amount">{{ formatCurrency(item.amount) }}</div>
-                </div>
-            </div>
-        </div>
 
         <div class="content-area" style="padding-top: 0;">
-            <div v-if="Object.keys(groupedTransactions).length === 0" class="empty-state">
+            <div v-if="Object.keys(groupedTransactions).length === 0 && !searchQuery" class="empty-state">
                 本月尚無任何明細紀錄
+            </div>
+            <div v-if="searchNoResults" class="empty-state">
+                尚未找到符合搜尋條件的紀錄，請調整搜尋字詞或切換月份。
             </div>
             <div v-for="(txs, date) in groupedTransactions" :key="date">
                 <div class="group-header">{{ date }}</div>
@@ -255,6 +292,43 @@
             </div>
         </div>
         <button class="fab" @click="openAddTx">+</button>
+        <button class="analysis-fab" @click="showExpenseAnalysis = true" title="查看本月支出分析">📊</button>
+    </div>
+    
+    <div class="modal-overlay" v-show="showTransfersModal">
+        <div class="modal-content" style="max-height: 85vh; display:flex; flex-direction: column;">
+            <div class="modal-header" style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 10px;">
+                資金流通紀錄
+                <button @click="showTransfersModal=false" style="border:none;background:none;font-size:28px;cursor:pointer;color:var(--text-muted);">&times;</button>
+            </div>
+            <div style="flex:1; overflow-y:auto; padding-bottom: 10px;">
+                <div v-if="transferTransactions.length === 0" class="empty-state" style="margin-top: 20px;">尚無資金流通紀錄</div>
+                <div class="list-card" v-for="tx in transferTransactions" :key="tx.id">
+                    <div class="icon-circle" style="background: #e3f2fd; color: #0984e3;">
+                        ⇄
+                    </div>
+                    <div class="item-details">
+                        <div class="item-header">
+                            <span class="item-title">{{ getAccountName(tx.accountId) }} → {{ getAccountName(tx.toAccountId) }}</span>
+                            <span class="item-amount" style="color: #0984e3;">
+                                {{ formatCurrency(tx.amount) }}
+                            </span>
+                        </div>
+                        <div class="item-footer">
+                            <span class="item-subtitle">
+                                {{ tx.date }} 
+                                <span v-if="tx.originalNote">· {{ tx.originalNote }}</span>
+                            </span>
+                            <div class="btn-group-sm">
+                                <button class="edit-btn" @click="openEditTxOrTransfer(tx)">編輯</button>
+                                <button class="delete-btn" @click="deleteTransaction(tx.id)">刪除</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-block" style="margin-top:10px; background: var(--primary); color: white; border: none;" @click="showTransfersModal=false">關閉</button>
+        </div>
     </div>
 
     <div v-show="currentPage === 'funds'" style="display: flex; flex-direction: column; height: 100%;">
@@ -289,11 +363,19 @@
                 <button class="btn-block" @click="openAddTransfer" style="border: 2px solid var(--primary); background: transparent;">⇄ 資金流通</button>
             </div>
 
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+                <button class="btn-block" :class="{active: accountTypeFilter === 'all'}" @click="accountTypeFilter = 'all'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'all' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">全部</button>
+                <button class="btn-block" :class="{active: accountTypeFilter === 'bank'}" @click="accountTypeFilter = 'bank'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'bank' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">🏦 銀行</button>
+                <button class="btn-block" :class="{active: accountTypeFilter === 'wallet'}" @click="accountTypeFilter = 'wallet'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'wallet' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">💵 現金</button>
+                <button class="btn-block" :class="{active: accountTypeFilter === 'epay'}" @click="accountTypeFilter = 'epay'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'epay' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">📱 電支</button>
+                <button class="btn-block" :class="{active: accountTypeFilter === 'credit'}" @click="accountTypeFilter = 'credit'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'credit' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">💳 信用卡</button>
+                <button class="btn-block" :class="{active: accountTypeFilter === 'iccard'}" @click="accountTypeFilter = 'iccard'" style="flex:1; min-width: 60px; padding: 8px 12px; font-size: 12px; border-radius: 6px; background: var(--tag-bg); border: 1px solid var(--border); cursor: pointer;" :style="accountTypeFilter === 'iccard' ? 'background: var(--primary); color: white; border-color: var(--primary);' : ''">🪪 票證</button>
+            </div>
             <div class="group-header">帳戶列表</div>
             <div v-if="accounts.length === 0" class="empty-state" style="margin-top: 30px;">
                 請先新增您的資金帳戶
             </div>
-            <div class="list-card" v-for="acc in accounts" :key="acc.id">
+            <div class="list-card" v-for="acc in filteredAccountsByType" :key="acc.id">
                 <div class="icon-circle" :style="acc.type === 'credit' ? 'background: #fff0f3; color: var(--danger);' : 'background: #e3f2fd; color: #0984e3;'">
                     {{ typeLabel[acc.type]?.[0] || '帳' }}
                 </div>
@@ -318,11 +400,11 @@
                 </div>
             </div>
 
-            <div class="group-header" style="margin-top: 25px;">近期資金流通</div>
-            <div v-if="transferTransactions.length === 0" class="empty-state" style="margin-top: 20px;">
+            <div class="group-header" style="margin-top: 25px; display: none;">近期資金流通</div>
+            <div v-if="transferTransactions.length === 0" class="empty-state" style="margin-top: 20px; display: none;">
                 尚無資金流通紀錄
             </div>
-            <div class="list-card" v-for="tx in transferTransactions" :key="tx.id">
+            <div class="list-card" v-for="tx in transferTransactions" :key="tx.id" style="display: none;">
                 <div class="icon-circle" style="background: #e3f2fd; color: #0984e3;">
                     ⇄
                 </div>
@@ -347,9 +429,12 @@
             </div>
         </div>
     </div>
+    
+    <div v-show="currentPage === 'funds'" style="position: fixed; right: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 100; pointer-events: none;">
+        <button class="analysis-fab" @click="showTransfersModal = true" title="查看資金流通紀錄" style="bottom: 155px; pointer-events: auto;">⇄</button>
+    </div>
 
     <div v-show="currentPage === 'fixed'" style="display: flex; flex-direction: column; height: 100%;">
-        <div class="header">
             <div class="header-top">
                 <div style="display: flex; gap: 15px; font-size: 22px; user-select: none;">
                     <span @click="isPrivacyMode = !isPrivacyMode" style="cursor:pointer; filter: grayscale(0.2);">{{ isPrivacyMode ? '🙈' : '👁️' }}</span>
@@ -463,18 +548,29 @@
             <div class="list-card" style="flex-direction: column; align-items: stretch; gap: 10px;">
                 <div style="font-size: 14px; color: var(--text-main); margin-bottom: 5px;">設定每月總預算，幫助您控制支出。</div>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <div class="form-control-sim" @click="openGlobalNumpad(monthlyBudget, v => monthlyBudget = v)" placeholder="輸入每月預算金額" style="flex: 1;">{{ monthlyBudget || '' }}</div>
+                    <div class="form-control-sim" @click="openGlobalNumpad(monthlyBudget, v => monthlyBudget.value = v)" placeholder="輸入每月預算金額" style="flex: 1;">{{ monthlyBudget.value || '' }}</div>
                 </div>
+            </div>
+
+            <div class="group-header">主題設定</div>
+            <div class="list-card" style="flex-direction: column; align-items: stretch; gap: 10px;">
+                <div style="font-size: 14px; color: var(--text-main); margin-bottom: 5px;">切換亮 / 暗主題，改善夜間使用舒適度。</div>
+                <button class="btn-block" @click="isDarkMode = !isDarkMode" style="margin-bottom: 0; border-color: var(--primary); color: var(--primary); background: transparent;">
+                    {{ isDarkMode ? '🌙 已啟用暗黑模式' : '☀️ 開啟暗黑模式' }}
+                </button>
             </div>
 
             <div class="group-header">Google 試算表雙向同步</div>
             <div class="list-card" style="flex-direction: column; align-items: stretch; gap: 10px;">
-                <div style="font-size: 14px; color: var(--text-main); margin-bottom: 5px;">貼上 Apps Script Web App 網址以進行同步。</div>
+                <div style="font-size: 14px; color: var(--text-main); margin-bottom: 5px;">貼上 Apps Script Web App 網址並可指定試算表範圍。</div>
                 <input type="text" class="form-control" v-model="googleSyncUrl" placeholder="https://script.google.com/macros/s/...">
+                <input type="text" class="form-control" v-model="googleSheetRange" placeholder="指定範圍，例如 Sheet1!A1:G100">
+                <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">範圍會傳給 Apps Script，方便寫入或讀取指定工作表位置。</div>
                 <div style="display: flex; gap: 10px; margin-top: 5px;">
                     <button class="btn-block" @click="syncToCloud(false)" style="margin-bottom: 0; border-color: var(--primary); color: var(--primary); flex: 1;">☁️ 備份至雲端</button>
                     <button class="btn-block" @click="syncFromCloud" style="margin-bottom: 0; border-color: var(--success); color: var(--success); flex: 1;">⬇️ 從雲端還原</button>
                 </div>
+                <div style="font-size: 13px; color: var(--text-muted); min-height: 18px;">{{ isSyncing ? '同步中，請稍候...' : (syncStatus || '支援指定工作表範圍，網址需為 Apps Script Web App。') }}</div>
             </div>
             
             <div class="group-header">指定範圍匯出 (支援 Google 試算表 CSV)</div>
@@ -563,10 +659,10 @@
             </div>
             
             <div class="form-group">
-                <label>支付/入帳方式 (現金/信用卡/電支/票證)</label>
+                <label>支付/入帳方式 (現金/信用卡/電子支付/第三方支付)</label>
                 <select class="form-control" v-model="txForm.accountId">
                     <option disabled value="">請選擇付款或入帳方式</option>
-                    <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }} (餘額: {{ formatCurrency(acc.balance) }})</option>
+                    <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }} <span v-if="acc.type !== 'thirdparty'">(餘額: {{ formatCurrency(acc.balance) }})</span></option>
                 </select>
             </div>
             <div class="form-group">
@@ -602,14 +698,19 @@
                 <select class="form-control" v-model="accForm.type">
                     <option value="bank">🏦 銀行帳戶</option>
                     <option value="wallet">💵 現金錢包</option>
-                    <option value="epay">📱 電子/第三方支付</option>
+                    <option value="epay">📱 電子支付 / E-payment</option>
+                    <option value="thirdparty">🧾 第三方支付 (代收代付)</option>
                     <option value="credit">💳 信用卡</option>
                     <option value="iccard">🪪 電子票證 (悠遊卡/一卡通)</option>
                 </select>
             </div>
-            <div class="form-group">
+            <div class="form-group" v-if="accForm.type !== 'thirdparty'">
                 <label>當前餘額 (信用卡填已刷金額，負數)</label>
                 <div class="form-control-sim" @click="openGlobalNumpad(accForm.balance, v => accForm.balance = v)" placeholder="輸入金額">{{ accForm.balance !== '' ? accForm.balance : '' }}</div>
+            </div>
+            <div class="form-group" v-if="accForm.type === 'thirdparty'">
+                <label>備註</label>
+                <div class="form-control-sim" style="color: var(--text-muted);">第三方支付僅代收代付，無獨立餘額</div>
             </div>
             
             <label class="checkbox-group" v-if="['bank', 'wallet', 'epay'].includes(accForm.type)">
@@ -725,6 +826,26 @@
         </div>
     </div>
 
+    <div class="modal-overlay" v-show="showExpenseAnalysis">
+        <div class="modal-content" style="max-height: 85vh; display:flex; flex-direction: column;">
+            <div class="modal-header" style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 10px;">
+                本月支出分析 (Top 5)
+                <button @click="showExpenseAnalysis=false" style="border:none;background:none;font-size:28px;cursor:pointer;color:var(--text-muted);">&times;</button>
+            </div>
+            <div style="flex:1; overflow-y:auto; padding-bottom: 10px;">
+                <div v-if="expenseAnalysis.length === 0" class="empty-state" style="margin-top: 20px;">本月尚無支出資料可分析。</div>
+                <div class="analysis-row" v-for="item in expenseAnalysis" :key="item.category" style="padding: 10px 0; border-bottom: 1px solid var(--border);">
+                    <div class="analysis-label" style="width:auto; flex: 1;">{{ item.category }}</div>
+                    <div class="analysis-bar-bg" style="flex: 2;">
+                        <div class="analysis-bar-fill" :style="{ width: item.percentage + '%' }"></div>
+                    </div>
+                    <div class="analysis-amount" style="width: 90px; text-align: right;">{{ formatCurrency(item.amount) }}</div>
+                </div>
+            </div>
+            <button class="btn-block" style="margin-top:10px; background: var(--primary); color: white; border: none;" @click="showExpenseAnalysis=false">關閉</button>
+        </div>
+    </div>
+
     <div class="modal-overlay" v-show="showNotifModal">
         <div class="modal-content" style="max-height: 80vh; display:flex; flex-direction: column;">
             <div class="modal-header" style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 10px;">
@@ -771,8 +892,19 @@
                 
                 const searchQuery = ref('');
                 const googleSyncUrl = ref('');
+                const googleSheetRange = ref('');
                 const monthlyBudget = ref(0);
+                const isDarkMode = ref(false);
+                const syncStatus = ref('');
+                const isSyncing = ref(false);
                 const showExpenseAnalysis = ref(false);
+
+                watch(isDarkMode, (val) => {
+                    document.documentElement.classList.toggle('dark-mode', val);
+                    const themeMeta = document.querySelector('meta[name="theme-color"]');
+                    if (themeMeta) themeMeta.setAttribute('content', val ? '#12182a' : '#f5f6fa');
+                    if (typeof localforage !== 'undefined') localforage.setItem('v_darkMode', val);
+                });
 
                 let syncTimeout = null;
                 let isAppLoaded = false; 
@@ -801,7 +933,9 @@
                             await loadWithMigration('v_notifications', notifications, []);
                             await loadWithMigration('v_googleSyncUrl', googleSyncUrl, '');
                             await loadWithMigration('v_monthlyBudget', monthlyBudget, 0);
+                            await loadWithMigration('v_googleSheetRange', googleSheetRange, '');
                             await loadWithMigration('v_privacyMode', isPrivacyMode, false);
+                            await loadWithMigration('v_darkMode', isDarkMode, false);
 
                             watch(transactions, (val) => localforage.setItem('v_transactions', JSON.parse(JSON.stringify(val))), { deep: true });
                             watch(accounts, (val) => localforage.setItem('v_accounts', JSON.parse(JSON.stringify(val))), { deep: true });
@@ -809,8 +943,10 @@
                             watch(investments, (val) => localforage.setItem('v_investments', JSON.parse(JSON.stringify(val))), { deep: true });
                             watch(notifications, (val) => localforage.setItem('v_notifications', JSON.parse(JSON.stringify(val))), { deep: true });
                             watch(googleSyncUrl, (val) => localforage.setItem('v_googleSyncUrl', val));
+                            watch(googleSheetRange, (val) => localforage.setItem('v_googleSheetRange', val));
                             watch(monthlyBudget, (val) => localforage.setItem('v_monthlyBudget', val));
                             watch(isPrivacyMode, (val) => localforage.setItem('v_privacyMode', val));
+                            watch(isDarkMode, (val) => localforage.setItem('v_darkMode', val));
                         }
                         
                         checkAutoPayAndNotify();
@@ -942,7 +1078,7 @@
                 const clearNotifications = () => { notifications.value = []; unreadNotifs.value = 0; showNotifModal.value = false; };
 
                 const exportStartDate = ref(''); const exportEndDate = ref('');
-                const showTxModal = ref(false); const showAccModal = ref(false); const showTransferModal = ref(false); const showFixedModal = ref(false); const showPayFixedModal = ref(false); const showInvestModal = ref(false); const showNotifModal = ref(false);
+                const showTxModal = ref(false); const showAccModal = ref(false); const showTransferModal = ref(false); const showFixedModal = ref(false); const showPayFixedModal = ref(false); const showInvestModal = ref(false); const showNotifModal = ref(false); const showTransfersModal = ref(false);
                 const editTxId = ref(null); const editAccId = ref(null); const editFixedId = ref(null);
 
                 const showGlobalNumpad = ref(false);
@@ -977,6 +1113,7 @@
                     const q = searchQuery.value.toLowerCase();
                     return currentMonthTransactions.value.filter(t => t.category.toLowerCase().includes(q) || (t.note && t.note.toLowerCase().includes(q)));
                 });
+                const searchNoResults = computed(() => searchQuery.value && filteredTransactions.value.length === 0);
                 
                 const expenseAnalysis = computed(() => {
                     const expenses = filteredTransactions.value.filter(t => t.type === 'expense');
@@ -1014,6 +1151,13 @@
                     else { txForm.value = { ...tx }; editTxId.value = tx.id; showTxModal.value = true; }
                 };
 
+                const adjustBalance = (acc, txType, amount, reverse = false) => {
+                    if (!acc || acc.type === 'thirdparty') return;
+                    const delta = reverse ? -amount : amount;
+                    if (txType === 'expense') acc.balance -= delta;
+                    else if (txType === 'income') acc.balance += delta;
+                };
+
                 const saveTransaction = () => {
                     if (!txForm.value.amount || !txForm.value.category || !txForm.value.accountId) return alert('請填寫完整資訊');
                     const amount = parseInt(txForm.value.amount);
@@ -1021,15 +1165,15 @@
                         const oldTx = transactions.value.find(t => t.id === editTxId.value);
                         if (oldTx) {
                             const oldAcc = accounts.value.find(a => a.id === oldTx.accountId);
-                            if (oldAcc) { if (oldTx.type === 'expense') oldAcc.balance += oldTx.amount; else if (oldTx.type === 'income') oldAcc.balance -= oldTx.amount; }
+                            adjustBalance(oldAcc, oldTx.type, oldTx.amount, true);
                             const newAcc = accounts.value.find(a => a.id === txForm.value.accountId);
-                            if (newAcc) { if (txForm.value.type === 'expense') newAcc.balance -= amount; else newAcc.balance += amount; }
+                            adjustBalance(newAcc, txForm.value.type, amount, false);
                             const idx = transactions.value.findIndex(t => t.id === editTxId.value);
                             transactions.value[idx] = { ...txForm.value, id: editTxId.value, amount };
                         }
                     } else {
                         const acc = accounts.value.find(a => a.id === txForm.value.accountId);
-                        if (acc) { if (txForm.value.type === 'expense') acc.balance -= amount; else acc.balance += amount; }
+                        adjustBalance(acc, txForm.value.type, amount, false);
                         transactions.value.push({ id: Date.now(), ...txForm.value, amount });
                     }
                     showTxModal.value = false;
@@ -1041,20 +1185,35 @@
                     if (txIndex > -1) {
                         const tx = transactions.value[txIndex];
                         const acc = accounts.value.find(a => a.id === tx.accountId);
-                        if (acc) { if (tx.type === 'expense') acc.balance += tx.amount; else if (tx.type === 'income') acc.balance -= tx.amount; else if (tx.type === 'transfer') { const toAcc = accounts.value.find(a => a.id === tx.toAccountId); acc.balance += tx.amount; if(toAcc) toAcc.balance -= tx.amount; } } 
-                        else if (tx.type === 'transfer') { const toAcc = accounts.value.find(a => a.id === tx.toAccountId); if(toAcc) toAcc.balance -= tx.amount; }
+                        if (acc) {
+                            if (tx.type === 'expense') adjustBalance(acc, tx.type, tx.amount, true);
+                            else if (tx.type === 'income') adjustBalance(acc, tx.type, tx.amount, true);
+                            else if (tx.type === 'transfer') {
+                                const toAcc = accounts.value.find(a => a.id === tx.toAccountId);
+                                if (acc.type !== 'thirdparty') acc.balance += tx.amount;
+                                if (toAcc && toAcc.type !== 'thirdparty') toAcc.balance -= tx.amount;
+                            }
+                        } else if (tx.type === 'transfer') {
+                            const toAcc = accounts.value.find(a => a.id === tx.toAccountId);
+                            if (toAcc && toAcc.type !== 'thirdparty') toAcc.balance -= tx.amount;
+                        }
                         transactions.value.splice(txIndex, 1);
                     }
                 };
 
                 const getAccountName = (id) => { const acc = accounts.value.find(a => a.id === id); return acc ? acc.name : '已刪除'; };
-                const totalAssets = computed(() => accounts.value.reduce((sum, a) => sum + Number(a.balance), 0));
+                const totalAssets = computed(() => accounts.value.filter(a => a.type !== 'credit' && a.type !== 'thirdparty').reduce((sum, a) => sum + Number(a.balance), 0));
+                const accountTypeFilter = ref('all');
+                const filteredAccountsByType = computed(() => {
+                    if (accountTypeFilter.value === 'all') return accounts.value;
+                    return accounts.value.filter(a => a.type === accountTypeFilter.value);
+                });
 
                 const openAddAcc = () => { accForm.value = { name: '', type: 'bank', balance: '', creditLimit: '', closingDate: '', dueDate: '', autoPayDate: '', autoPayAccount: '', isInvestAccount: false }; editAccId.value = null; showAccModal.value = true; };
                 const openEditAcc = (acc) => { accForm.value = { ...acc }; editAccId.value = acc.id; showAccModal.value = true; };
                 const saveAccount = () => {
                     if (!accForm.value.name) return alert('請輸入名稱');
-                    const bal = parseInt(accForm.value.balance) || 0;
+                    const bal = accForm.value.type === 'thirdparty' ? 0 : parseInt(accForm.value.balance) || 0;
                     if (editAccId.value) { const idx = accounts.value.findIndex(a => a.id === editAccId.value); if (idx > -1) accounts.value[idx] = { ...accounts.value[idx], name: accForm.value.name, type: accForm.value.type, balance: bal, creditLimit: parseInt(accForm.value.creditLimit)||0, closingDate: parseInt(accForm.value.closingDate)||null, dueDate: parseInt(accForm.value.dueDate)||null, autoPayDate: parseInt(accForm.value.autoPayDate)||null, autoPayAccount: accForm.value.autoPayAccount||null, isInvestAccount: accForm.value.isInvestAccount || false }; } 
                     else { accounts.value.push({ id: Date.now(), name: accForm.value.name, type: accForm.value.type, balance: bal, creditLimit: parseInt(accForm.value.creditLimit)||0, closingDate: parseInt(accForm.value.closingDate)||null, dueDate: parseInt(accForm.value.dueDate)||null, autoPayDate: parseInt(accForm.value.autoPayDate)||null, autoPayAccount: accForm.value.autoPayAccount||null, isInvestAccount: accForm.value.isInvestAccount || false }); }
                     showAccModal.value = false;
@@ -1066,18 +1225,21 @@
                     if (transferForm.value.from === transferForm.value.to) return alert('轉出與轉入不能相同');
                     if (!transferForm.value.amount || transferForm.value.amount <= 0) return alert('請輸入金額');
                     const amount = parseInt(transferForm.value.amount);
+                    const fromAcc = accounts.value.find(a => a.id === transferForm.value.from);
+                    const toAcc = accounts.value.find(a => a.id === transferForm.value.to);
+                    if ((fromAcc && fromAcc.type === 'thirdparty') || (toAcc && toAcc.type === 'thirdparty')) return alert('第三方支付僅能代收代付，無法進行帳戶間轉帳');
                     if (editTxId.value) {
                         const oldTx = transactions.value.find(t => t.id === editTxId.value);
                         if (oldTx) {
                             const oldFrom = accounts.value.find(a => a.id === oldTx.accountId); const oldTo = accounts.value.find(a => a.id === oldTx.toAccountId);
-                            if (oldFrom) oldFrom.balance += oldTx.amount; if (oldTo) oldTo.balance -= oldTx.amount;
-                            const newFrom = accounts.value.find(a => a.id === transferForm.value.from); const newTo = accounts.value.find(a => a.id === transferForm.value.to);
+                            if (oldFrom && oldFrom.type !== 'thirdparty') oldFrom.balance += oldTx.amount;
+                            if (oldTo && oldTo.type !== 'thirdparty') oldTo.balance -= oldTx.amount;
+                            const newFrom = fromAcc; const newTo = toAcc;
                             if (newFrom) newFrom.balance -= amount; if (newTo) newTo.balance += amount;
                             const idx = transactions.value.findIndex(t => t.id === editTxId.value);
                             transactions.value[idx] = { ...oldTx, accountId: transferForm.value.from, toAccountId: transferForm.value.to, amount: amount, date: transferForm.value.date, note: `轉入 ${newTo ? newTo.name : '未知'} ` + (transferForm.value.note ? `(${transferForm.value.note})` : ''), originalNote: transferForm.value.note };
                         }
                     } else {
-                        const fromAcc = accounts.value.find(a => a.id === transferForm.value.from); const toAcc = accounts.value.find(a => a.id === transferForm.value.to);
                         if (fromAcc && toAcc) {
                             fromAcc.balance -= amount; toAcc.balance += amount;
                             transactions.value.push({ id: Date.now(), type: 'transfer', accountId: fromAcc.id, toAccountId: toAcc.id, amount: amount, category: '資金流通', date: transferForm.value.date, note: `轉入 ${toAcc.name} ` + (transferForm.value.note ? `(${transferForm.value.note})` : ''), originalNote: transferForm.value.note });
@@ -1120,7 +1282,7 @@
                 const assetAllocations = computed(() => {
                     let cash = 0; let bank = 0; let epay = 0; let iccard = 0;
                     accounts.value.forEach(a => {
-                        if (a.balance > 0) {
+                        if (a.balance > 0 && a.type !== 'thirdparty') {
                             if (a.type === 'wallet') cash += a.balance;
                             else if (a.type === 'bank') bank += a.balance;
                             else if (a.type === 'epay') epay += a.balance;
@@ -1155,20 +1317,64 @@
 
                 const syncToCloud = async (isSilent = false) => {
                     if (!googleSyncUrl.value) { if (!isSilent) alert('請先輸入 Google Apps Script 網址'); return; }
+                    isSyncing.value = true;
+                    syncStatus.value = '正在同步中...';
                     try {
-                        const payload = { transactions: transactions.value, accounts: accounts.value, fixedExpenses: fixedExpenses.value, investments: investments.value };
-                        const res = await fetch(googleSyncUrl.value.trim(), { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+                        const payload = {
+                            transactions: transactions.value,
+                            accounts: accounts.value,
+                            fixedExpenses: fixedExpenses.value,
+                            investments: investments.value,
+                            range: googleSheetRange.value || ''
+                        };
+                        const res = await fetch(googleSyncUrl.value.trim(), { method: 'POST', headers: { 'Content-Type': 'application/json;charset=utf-8' }, body: JSON.stringify(payload) });
                         const result = await res.json();
-                        if (!isSilent) { if (result.status === 'success') alert('🎉 備份成功！'); else alert('❌ 備份失敗：' + (result.message || '未知錯誤')); }
-                    } catch (e) { if (!isSilent) alert('連線失敗！'); }
+                        if (!isSilent) {
+                            if (result.status === 'success') {
+                                syncStatus.value = '🎉 同步成功！';
+                                alert('🎉 備份成功！');
+                            } else {
+                                syncStatus.value = '❌ 同步失敗，請檢查網址或範圍設定。';
+                                alert('❌ 備份失敗：' + (result.message || '未知錯誤'));
+                            }
+                        }
+                    } catch (e) {
+                        syncStatus.value = '❌ 同步失敗，請檢查網路或網址。';
+                        if (!isSilent) alert('連線失敗！');
+                    } finally {
+                        isSyncing.value = false;
+                    }
                 };
                 const syncFromCloud = async () => {
-                    if (!googleSyncUrl.value) return alert('請先輸入網址'); if (!confirm('將會覆蓋您目前的資料，確定繼續嗎？')) return;
+                    if (!googleSyncUrl.value) return alert('請先輸入網址');
+                    if (!confirm('將會覆蓋您目前的資料，確定繼續嗎？')) return;
+                    isSyncing.value = true;
+                    syncStatus.value = '正在還原中...';
                     try {
-                        const res = await fetch(googleSyncUrl.value); const data = await res.json();
-                        if (data && data.transactions) { transactions.value = data.transactions; accounts.value = data.accounts || []; fixedExpenses.value = data.fixedExpenses || []; investments.value = data.investments || []; alert('還原成功！'); } 
-                        else { alert('資料格式不符'); }
-                    } catch (e) { alert('連線失敗。'); }
+                        let url = googleSyncUrl.value.trim();
+                        if (googleSheetRange.value) {
+                            url += url.includes('?') ? '&' : '?';
+                            url += 'range=' + encodeURIComponent(googleSheetRange.value);
+                        }
+                        const res = await fetch(url);
+                        const data = await res.json();
+                        if (data && data.transactions) {
+                            transactions.value = data.transactions;
+                            accounts.value = data.accounts || [];
+                            fixedExpenses.value = data.fixedExpenses || [];
+                            investments.value = data.investments || [];
+                            syncStatus.value = '✅ 還原完成';
+                            alert('還原成功！');
+                        } else {
+                            syncStatus.value = '❌ 還原失敗，回傳資料格式不符。';
+                            alert('資料格式不符');
+                        }
+                    } catch (e) {
+                        syncStatus.value = '❌ 還原失敗，請確認網址與網路。';
+                        alert('連線失敗。');
+                    } finally {
+                        isSyncing.value = false;
+                    }
                 };
 
                 const secureCSV = (val) => { if (!val) return '""'; let str = String(val).replace(/"/g, '""'); if (/^[=\+\-@\t\r]/.test(str)) str = "'" + str; return `"${str}"`; };
@@ -1212,18 +1418,18 @@
                     return new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(val || 0);
                 };
                 
-                const typeLabel = { 'bank': '🏦', 'wallet': '💵', 'epay': '📱', 'credit': '💳', 'iccard': '🪪' };
+                const typeLabel = { 'bank': '🏦', 'wallet': '💵', 'epay': '📱', 'thirdparty': '🧾', 'credit': '💳', 'iccard': '🪪' };
 
                 return {
                     currentPage, selectedMonth, transactions, accounts, fixedExpenses, currentCategories,
-                    isPrivacyMode, monthlyBudget, showExpenseAnalysis, assetAllocations, 
+isPrivacyMode, monthlyBudget, showExpenseAnalysis, assetAllocations, accountTypeFilter, filteredAccountsByType,
                     
-                    showTxModal, showAccModal, showTransferModal, showFixedModal, showPayFixedModal, showInvestModal, showNotifModal,
+                    showTxModal, showAccModal, showTransferModal, showFixedModal, showPayFixedModal, showInvestModal, showNotifModal, showExpenseAnalysis, showTransfersModal,
                     editTxId, editAccId, editFixedId, txForm, accForm, transferForm, fixedForm, payFixedState, investForm,
                     exportStartDate, exportEndDate, expenseCategories, incomeCategories,
-                    currentMonthTransactions, transferTransactions, filteredTransactions, monthlyIncome, monthlyExpense, monthlyBalance, groupedTransactions, expenseAnalysis,
+                    currentMonthTransactions, transferTransactions, filteredTransactions, searchNoResults, monthlyIncome, monthlyExpense, monthlyBalance, groupedTransactions, expenseAnalysis,
                     investments, sortedInvestments, investTotalPrincipal, openAddInvest, saveInvest, deleteInvest,
-                    notifications, unreadNotifs, clearNotifications, searchQuery, googleSyncUrl, syncToCloud, syncFromCloud,
+                    notifications, unreadNotifs, clearNotifications, searchQuery, googleSyncUrl, googleSheetRange, syncStatus, isSyncing, isDarkMode, syncToCloud, syncFromCloud,
                     totalAssets, typeLabel, openAddTx, openEditTxOrTransfer, saveTransaction, deleteTransaction, getAccountName,
                     openAddAcc, openEditAcc, saveAccount, deleteAccount, openAddTransfer, saveTransfer,
                     openAddFixed, openEditFixed, saveFixedExpense, deleteFixed, openPayModal, executePayFixed,
@@ -1237,7 +1443,9 @@
     }
 </script>
 <script>
-    if ('serviceWorker' in navigator) {
+    const isLocalDevHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    const isWebContext = window.location.protocol === 'http:' || window.location.protocol === 'https:';
+    if ('serviceWorker' in navigator && isWebContext && !isLocalDevHost) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js').then(registration => {
                 console.log('ServiceWorker registration successful with scope: ', registration.scope);
@@ -1245,6 +1453,12 @@
                 console.log('ServiceWorker registration failed: ', err);
             });
         });
+    } else if ('serviceWorker' in navigator) {
+        if (!isWebContext) {
+            console.log('ServiceWorker disabled on non-http(s) protocol.');
+        } else if (isLocalDevHost) {
+            console.log('ServiceWorker disabled on local development host.');
+        }
     }
 </script>
 </body>
