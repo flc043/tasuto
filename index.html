@@ -58,6 +58,12 @@
         .dark-mode .search-bar { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18); }
         .dark-mode .list-card { box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
         .dark-mode .header { box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
+        .dark-mode .list-card,
+        .dark-mode .header { box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+        .dark-mode .btn-submit,
+        .dark-mode .action-chip.primary {
+            box-shadow: 0 4px 12px -2px rgba(91, 122, 165, 0.3);
+        }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'PingFang TC', 'Microsoft JhengHei', -apple-system, sans-serif; }
         body { background-color: var(--bg); display: flex; justify-content: center; height: 100vh; height: 100dvh; overflow: hidden; }
@@ -70,12 +76,12 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
 
-        .header { background: var(--primary); color: white; padding: 20px; padding-bottom: 30px; border-radius: 0 0 20px 20px; }
+        .header { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); color: white; padding: 20px; padding-bottom: 30px; border-radius: 0 0 20px 20px; }
         .header-title { text-align: center; font-size: 18px; font-weight: bold; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.1); flex: 1; }
         .month-selector { background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 6px 12px; border-radius: 20px; font-size: 16px; outline: none; font-weight: bold; }
         .month-selector::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
 
-        .summary-cards { display: flex; justify-content: space-between; background: var(--card-bg); border-radius: 12px; padding: 15px; margin: -20px 20px 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); position: relative; }
+        .summary-cards { display: flex; justify-content: space-between; background: var(--card-bg); border-radius: 12px; padding: 15px; margin: -20px 20px 10px 20px; box-shadow: 0 8px 25px -8px rgba(93, 109, 126, 0.15); position: relative; }
         .summary-item { flex: 1; text-align: center; border-right: 1px solid var(--border); }
         .summary-item:last-child { border-right: none; }
         .summary-label { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
@@ -86,8 +92,8 @@
         .content-area { flex: 1; overflow-y: auto; padding: 10px 20px 80px 20px; }
 
         .group-header { font-size: 13px; color: var(--text-muted); margin: 15px 0 8px 5px; font-weight: bold; }
-        .list-card { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-        .icon-circle { width: 42px; height: 42px; border-radius: 50%; background: #fef0d7; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 15px; color: var(--primary-dark); font-weight: bold; flex-shrink: 0; filter: saturate(0.7) brightness(0.9); }
+        .list-card { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .icon-circle { width: 42px; height: 42px; border-radius: 50%; background: #fef0d7; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 15px; color: var(--primary-dark); font-weight: bold; flex-shrink: 0; }
         
         .item-details { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
         .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
@@ -108,9 +114,6 @@
         .nav-item { flex: 1; text-align: center; padding: 15px 0; color: var(--text-muted); font-size: 14px; cursor: pointer; transition: all 0.2s; }
         .nav-item.active { color: var(--primary-dark); font-weight: bold; }
 
-        .fab { position: absolute; bottom: 85px; right: 25px; width: 56px; height: 56px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 4px 12px rgba(247, 183, 49, 0.5); border: none; cursor: pointer; z-index: 10; transition: transform 0.1s; }
-        .fab:active { transform: scale(0.95); }
-
         .btn-block { display: block; width: 100%; padding: 14px; background: var(--card-bg); border: 2px dashed var(--primary); color: var(--primary-dark); font-size: 15px; font-weight: bold; border-radius: 10px; margin-bottom: 15px; cursor: pointer; text-align: center; transition: all 0.2s; }
         .btn-block:active { background: var(--tag-active-bg); }
 
@@ -118,28 +121,39 @@
         .modal-content { background: var(--card-bg); width: 100%; border-radius: 20px 20px 0 0; padding: 25px 20px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         
-        .modal-header { font-size: 18px; font-weight: bold; margin-bottom: 20px; text-align: center; color: var(--text-main); }
+        .modal-header { font-size: 18px; font-weight: bold; margin-bottom: 20px; text-align: center; color: var(--text-main); position: relative; }
+        .modal-header::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+        }
         .form-group { margin-bottom: 16px; }
         .form-group label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; font-weight: bold; }
         .form-control { width: 100%; padding: 12px 15px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; background: var(--input-bg); color: var(--text-main); }
-        .form-control:focus { outline: none; border-color: var(--primary); background: var(--card-bg); box-shadow: 0 0 0 2px rgba(247,183,49,0.2); }
+        .form-control:focus { outline: none; border-color: var(--primary); background: var(--card-bg); box-shadow: 0 0 0 3px rgba(247,183,49,0.25); }
         .form-control-sim { width: 100%; padding: 12px 15px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; background: var(--input-bg); color: var(--text-main); cursor: pointer; display: flex; align-items: center; min-height: 46px; }
         .form-control-sim:empty::before { content: attr(placeholder); color: var(--text-muted); }
         .checkbox-group { display: flex; align-items: center; gap: 10px; font-size: 14px; margin-bottom: 15px; color: var(--text-main); font-weight: bold; }
 
         .btn-row { display: flex; gap: 12px; margin-top: 25px; }
-        .btn { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; font-weight: bold; transition: opacity 0.2s; }
-        .btn:active { opacity: 0.8; }
+        .btn { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; font-weight: bold; transition: all 0.2s ease-out; }
+        .btn:active { transform: translateY(1px); opacity: 0.9; }
         .btn-cancel { background: var(--tag-bg); color: var(--text-muted); }
-        .btn-submit { background: var(--primary); color: white; }
+        .btn-submit { background: linear-gradient(45deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 4px 12px -2px rgba(243, 156, 18, 0.5); }
 
         .progress-bar-bg { width: 100%; height: 8px; background: var(--border); border-radius: 4px; margin-top: 8px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.3s ease; }
         
         .type-toggle { display: flex; gap: 10px; margin-bottom: 20px; background: var(--keyboard-bg); padding: 4px; border-radius: 10px; }
         .type-toggle-btn { flex: 1; text-align: center; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; color: var(--text-muted); transition: all 0.2s; }
-        .type-toggle-btn.active-expense { background: var(--danger); color: white; box-shadow: 0 2px 5px rgba(235,59,90,0.3); }
-        .type-toggle-btn.active-income { background: var(--success); color: white; box-shadow: 0 2px 5px rgba(32,191,107,0.3); }
+        .type-toggle-btn.active-expense { background: var(--danger); color: white; box-shadow: 0 3px 8px rgba(235,59,90,0.35); }
+        .type-toggle-btn.active-income { background: var(--success); color: white; box-shadow: 0 3px 8px rgba(32,191,107,0.35); }
         
         .search-bar { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); padding: 10px 15px; border-radius: 20px; color: white; width: 100%; margin-top: 15px; font-size: 15px; outline: none; }
         .search-bar::placeholder { color: rgba(255,255,255,0.7); }
@@ -157,7 +171,7 @@
         .empty-state { text-align: center; color: var(--text-muted); margin-top: 60px; font-size: 15px; }
 
         .quick-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-        .quick-tag { background: var(--tag-bg); padding: 6px 12px; border-radius: 15px; font-size: 13px; color: var(--text-main); cursor: pointer; font-weight: bold; border: 1px solid transparent; }
+        .quick-tag { background: var(--tag-bg); padding: 6px 12px; border-radius: 15px; font-size: 13px; color: var(--text-main); cursor: pointer; font-weight: bold; border: 1px solid transparent; transition: all 0.15s ease; }
         .quick-tag:active { filter: brightness(0.9); }
         .quick-tag.selected { background: var(--tag-active-bg); color: var(--primary-dark); border-color: var(--primary); }
 
@@ -167,26 +181,38 @@
         .numpad-btn:active { background: var(--key-press); }
         .btn-c { background: #5c2c2c; color: #ff7675; }
         .btn-del { background: var(--border); }
-        .analysis-fab {
-            position: absolute;
-            bottom: 155px;
-            right: 25px;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            border: none;
-            background: var(--primary);
-            color: white;
-            font-size: 20px;
+        .action-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-row > .btn-block,
+        .action-row > .action-chip {
+            flex: 0 1 160px;
+            margin-bottom: 0;
+        }
+        .action-chip {
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text-main);
+            border-radius: 12px;
+            padding: 12px 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            gap: 8px;
+            font-size: 14px;
+            font-weight: bold;
             cursor: pointer;
-            z-index: 12;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
         }
-        .analysis-fab:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
+        .action-chip.primary {
+            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px -2px rgba(243, 156, 18, 0.4);
+        }
+        .action-chip:active { transform: scale(0.98); }
+        .action-icon {
+            font-size: 16px;
+            line-height: 1;
+        }
     </style>
 </head>
 <body>
@@ -249,6 +275,16 @@
 
 
         <div class="content-area" style="padding-top: 0;">
+            <div class="action-row">
+                <button class="action-chip primary" @click="openAddTx">
+                    <span class="action-icon">+</span>
+                    <span>新增交易</span>
+                </button>
+                <button class="action-chip" @click="showExpenseAnalysis = true">
+                    <span class="action-icon">📊</span>
+                    <span>支出分析</span>
+                </button>
+            </div>
             <div v-if="Object.keys(groupedTransactions).length === 0 && !searchQuery" class="empty-state">
                 本月還沒有任何交易紀錄
             </div>
@@ -270,7 +306,7 @@
                         </div>
                         <div class="item-footer">
                             <span class="item-subtitle">
-                                {{ getAccountName(tx.accountId) }} 
+                                {{ getAccountName(tx.accountId) }}<template v-if="tx.linkedAccountId"> (扣款: {{ getAccountName(tx.linkedAccountId) }})</template>
                                 <span v-if="tx.note">繚 {{ tx.note }}</span>
                             </span>
                             <div class="btn-group-sm">
@@ -282,8 +318,6 @@
                 </div>
             </div>
         </div>
-        <button class="fab" @click="openAddTx">+</button>
-        <button class="analysis-fab" @click="showExpenseAnalysis = true" title="查看支出分析">📊</button>
     </div>
     
     <div class="modal-overlay" v-show="showTransfersModal">
@@ -349,9 +383,13 @@
             </div>
         </div>
         <div class="content-area" style="padding-top: 25px;">
-            <div style="display: flex; gap: 10px;">
+            <div class="action-row">
                 <button class="btn-block" @click="openAddAcc">+ 新增帳戶 / 資產</button>
                 <button class="btn-block" @click="openAddTransfer" style="border: 2px solid var(--primary); background: transparent;">新增轉帳</button>
+                <button class="action-chip" @click="showTransfersModal = true">
+                    <span class="action-icon">↔</span>
+                    <span>轉帳紀錄</span>
+                </button>
             </div>
 
             <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
@@ -374,12 +412,15 @@
                     <div class="item-header">
                         <span class="item-title">{{ acc.name }}</span>
                         <span class="item-amount" :class="acc.type === 'credit' && acc.balance < 0 ? 'expense' : ''">
-                            {{ acc.type === 'credit' ? '應繳 ' + formatCurrency(Math.abs(acc.balance)) : formatCurrency(acc.balance) }}
+                            {{ acc.type === 'credit' ? (acc.balance < 0 ? '應繳 ' + formatCurrency(Math.abs(acc.balance)) : (acc.balance > 0 ? '溢繳 ' + formatCurrency(acc.balance) : '應繳 ' + formatCurrency(0))) : formatCurrency(acc.balance) }}
                         </span>
                     </div>
                     <div class="item-footer">
                         <span class="item-subtitle">
-                            {{ typeLabel[acc.type] }}
+                            <template v-if="acc.type === 'credit' && acc.closingDate">
+                                已出帳 {{ formatCurrency(getCreditCardDetails(acc).billed) }} · 未出帳 {{ formatCurrency(getCreditCardDetails(acc).unbilled) }}
+                            </template>
+                            <template v-else>{{ typeLabel[acc.type] }}</template>
                             <span v-if="acc.type === 'credit' && acc.creditLimit"> · 額度 {{ formatCurrency(acc.creditLimit) }}</span>
                             <span v-if="acc.isInvestAccount"> · 投資帳戶</span>
                         </span>
@@ -391,38 +432,7 @@
                 </div>
             </div>
 
-            <div class="group-header" style="margin-top: 25px; display: none;">轉帳紀錄</div>
-            <div v-if="transferTransactions.length === 0" class="empty-state" style="margin-top: 20px; display: none;">
-                目前沒有轉帳紀錄
-            </div>
-            <div class="list-card" v-for="tx in transferTransactions" :key="tx.id" style="display: none;">
-                <div class="icon-circle" style="background: #e3f2fd; color: #0984e3;">
-                    ↔
-                </div>
-                <div class="item-details">
-                    <div class="item-header">
-                        <span class="item-title">{{ getAccountName(tx.accountId) }} → {{ getAccountName(tx.toAccountId) }}</span>
-                        <span class="item-amount" style="color: #0984e3;">
-                            {{ formatCurrency(tx.amount) }}
-                        </span>
-                    </div>
-                    <div class="item-footer">
-                        <span class="item-subtitle">
-                            {{ tx.date }} 
-                            <span v-if="tx.originalNote">繚 {{ tx.originalNote }}</span>
-                        </span>
-                        <div class="btn-group-sm">
-                            <button class="edit-btn" @click="openEditTxOrTransfer(tx)">編輯</button>
-                            <button class="delete-btn" @click="deleteTransaction(tx.id)">刪除</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
-    </div>
-    
-    <div v-show="currentPage === 'funds'" style="position: fixed; right: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 100; pointer-events: none;">
-        <button class="analysis-fab" @click="showTransfersModal = true" title="查看轉帳紀錄" style="bottom: 155px; pointer-events: auto;">↔</button>
     </div>
 
     <div v-show="currentPage === 'fixed'" style="display: flex; flex-direction: column; height: 100%;">
@@ -466,10 +476,10 @@
                         <span>{{ formatCurrency(item.remainingAmount) }} / 總額 {{ formatCurrency(item.totalAmount) }}</span>
                     </div>
                     <div class="progress-bar-bg">
-                        <div class="progress-bar-fill" :style="{ width: Math.max(0, Math.min(100, ((item.totalAmount - item.remainingAmount) / item.totalAmount * 100))) + '%' }"></div>
+                        <div class="progress-bar-fill" :style="{ width: (item.totalAmount ? Math.max(0, Math.min(100, ((item.totalAmount - item.remainingAmount) / item.totalAmount * 100))) : 0) + '%' }"></div>
                     </div>
                     <div style="text-align: right; font-size: 11px; margin-top: 5px; color: var(--success);">
-                        已完成: {{ Math.round(Math.max(0, Math.min(100, ((item.totalAmount - item.remainingAmount) / item.totalAmount * 100)))) }}%
+                        已完成: {{ item.totalAmount ? Math.round(Math.max(0, Math.min(100, ((item.totalAmount - item.remainingAmount) / item.totalAmount * 100)))) : 0 }}%
                     </div>
                 </div>
             </div>
@@ -485,9 +495,29 @@
                 <div class="header-title">投資總覽</div>
                 <div style="width:24px;"></div>
             </div>
-            <div style="text-align: center; padding-top: 5px;">
-                <div style="font-size: 13px; opacity: 0.9; margin-bottom: 5px;">目前累計投入本金</div>
-                <div style="font-size: 32px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">{{ formatCurrency(investTotalPrincipal) }}</div>
+            <div style="text-align: center; margin-bottom: 15px;">
+                <select class="month-selector" v-model="investSelectedYear">
+                    <option value="all">全部年度</option>
+                    <option v-for="y in investYears" :key="y" :value="y">{{ y }} 年度</option>
+                </select>
+            </div>
+            <div style="text-align: center; padding-top: 0;">
+                <div style="font-size: 13px; opacity: 0.9; margin-bottom: 5px;">總投資市值</div>
+                <div style="font-size: 32px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">{{ formatCurrency(investTotalValue) }}</div>
+            </div>
+            <div style="display: flex; justify-content: space-around; background: rgba(0,0,0,0.1); margin: 15px 20px 0 20px; padding: 12px; border-radius: 12px; font-size: 13px;">
+                <div style="text-align: center;">
+                    <div style="opacity: 0.8; margin-bottom: 4px;">總成本</div>
+                    <div style="font-weight: bold;">{{ formatCurrency(investTotalCost) }}</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="opacity: 0.8; margin-bottom: 4px;">未實現損益</div>
+                    <div style="font-weight: bold;">{{ investTotalUnrealized >= 0 ? '+' : ''}}{{ formatCurrency(investTotalUnrealized) }}</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="opacity: 0.8; margin-bottom: 4px;">已實現損益<template v-if="investSelectedYear !== 'all'"> ({{investSelectedYear}})</template></div>
+                    <div style="font-weight: bold;">{{ investTotalRealized >= 0 ? '+' : ''}}{{ formatCurrency(investTotalRealized) }}</div>
+                </div>
             </div>
         </div>
         <div class="content-area" style="padding-top: 25px;">
@@ -502,7 +532,33 @@
             </div>
 
             <button class="btn-block" @click="openAddInvest">+ 新增投資紀錄</button>
-            <div class="group-header">投資交易紀錄（依日期排序）</div>
+
+            <div class="group-header">目前持有標的與損益</div>
+            <div v-if="investmentTargets.length === 0" class="empty-state">尚無投資標的</div>
+            <div class="list-card" v-for="t in investmentTargets" :key="t.name" style="flex-direction: column; align-items: stretch;">
+                <div class="item-header" style="margin-bottom: 10px;">
+                    <span class="item-title" style="font-size: 18px;">{{ t.name }}</span>
+                    <span class="item-amount" :class="t.unrealizedPnL + t.realizedPnL >= 0 ? 'income' : 'expense'">
+                        {{ t.unrealizedPnL + t.realizedPnL >= 0 ? '+' : ''}}{{ formatCurrency(t.unrealizedPnL + t.realizedPnL) }} <span style="font-size: 12px; color: var(--text-muted); font-weight: normal;">(總損益)</span>
+                    </span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--border);">
+                    <span>持有 {{ t.totalShares }} 股 | 均價 {{ t.totalShares > 0 ? (t.totalCost / t.totalShares).toFixed(2) : 0 }}</span>
+                    <span style="cursor: pointer; color: var(--primary); font-weight: bold; background: var(--tag-bg); padding: 2px 8px; border-radius: 10px;" @click="updateTargetPrice(t.name, t.currentPrice)">
+                        現價 {{ t.currentPrice || '點擊設定' }} ✎
+                    </span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span>市值: {{ formatCurrency(t.currentValue) }}</span>
+                    <span>成本: {{ formatCurrency(t.totalCost) }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                    <span>已實現<template v-if="investSelectedYear !== 'all'">({{investSelectedYear}})</template>: <span :class="t.realizedPnL >= 0 ? 'income' : 'expense'">{{ t.realizedPnL >= 0 ? '+' : ''}}{{ formatCurrency(t.realizedPnL) }}</span></span>
+                    <span>未實現: <span :class="t.unrealizedPnL >= 0 ? 'income' : 'expense'">{{ t.unrealizedPnL >= 0 ? '+' : ''}}{{ formatCurrency(t.unrealizedPnL) }}</span></span>
+                </div>
+            </div>
+
+            <div class="group-header">投資交易紀錄（依日期排序）<template v-if="investSelectedYear !== 'all'"> - {{ investSelectedYear }}年</template></div>
             <div v-if="investments.length === 0" class="empty-state">目前沒有任何投資紀錄</div>
             
             <div class="list-card" v-for="inv in sortedInvestments" :key="inv.id">
@@ -517,7 +573,7 @@
                         </span>
                     </div>
                     <div class="item-footer">
-                        <span class="item-subtitle">{{ inv.date }} 繚 {{ getAccountName(inv.accountId) }}</span>
+                        <span class="item-subtitle">{{ inv.date }} 繚 {{ getAccountName(inv.accountId) }}<template v-if="inv.shares"> 繚 {{ inv.shares }} 股</template></span>
                         <div class="btn-group-sm">
                             <button class="delete-btn" @click="deleteInvest(inv.id)">刪除</button>
                         </div>
@@ -540,7 +596,7 @@
             <div class="list-card" style="flex-direction: column; align-items: stretch; gap: 10px;">
                 <div style="font-size: 14px; color: var(--text-main); margin-bottom: 5px;">設定本月預算後，首頁會顯示支出進度與剩餘金額。</div>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <div class="form-control-sim" @click="openGlobalNumpad(monthlyBudget, v => monthlyBudget.value = v)" placeholder="請輸入本月預算" style="flex: 1;">{{ monthlyBudget.value || '' }}</div>
+                    <div class="form-control-sim" @click="openGlobalNumpad(monthlyBudget, v => monthlyBudget = v)" placeholder="請輸入本月預算" style="flex: 1;">{{ monthlyBudget || '' }}</div>
                 </div>
             </div>
 
@@ -579,9 +635,16 @@
                 <div style="font-size: 13px; color: var(--text-muted); min-height: 18px;">{{ isSyncing ? '同步中...' : (syncStatus || '請先填入 Apps Script Web App 網址') }}</div>
             </div>
             
-            <div class="group-header">匯出交易資料（可匯入 Google 或 CSV）</div>
+            <div class="group-header">資料匯出與匯入 (CSV)</div>
             <div class="list-card" style="flex-direction: column; align-items: stretch; gap: 10px;">
-                <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                <label style="font-size: 13px; color: var(--text-muted); font-weight: bold;">選擇操作資料類型</label>
+                <select class="form-control" v-model="csvDataType">
+                    <option value="transactions">交易明細</option>
+                    <option value="accounts">帳戶清單</option>
+                    <option value="fixedExpenses">固定支出 (貸款/保險/訂閱)</option>
+                    <option value="investments">投資紀錄</option>
+                </select>
+                <div v-if="csvDataType === 'transactions'" style="display: flex; gap: 10px; margin-top: 5px;">
                     <div style="flex: 1;">
                         <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">開始日期</label>
                         <input type="date" class="form-control" v-model="exportStartDate">
@@ -591,13 +654,15 @@
                         <input type="date" class="form-control" v-model="exportEndDate">
                     </div>
                 </div>
-                <button class="btn-block" @click="exportCSV" style="margin-bottom: 0; background: var(--primary); color: white; border: none;">匯出 CSV</button>
-            </div>
-
-            <div class="group-header" style="margin-top: 25px;">從 CSV 匯入資料</div>
-            <div class="list-card" style="flex-direction: column; align-items: stretch; gap: 10px;">
+                <div style="display: flex; gap: 10px; margin-top: 5px;">
+                    <button class="btn-block" @click="exportCSV" style="margin-bottom: 0; background: var(--primary); color: white; border: none; flex: 1; padding: 12px 10px;">下載格式 / 匯出</button>
+                    <button class="btn-block" @click="triggerFileInput" style="margin-bottom: 0; border-color: var(--success); color: var(--success); background: transparent; flex: 1; padding: 12px 10px;">從 CSV 匯入</button>
+                </div>
                 <input type="file" id="fileInput" @change="handleFileUpload" accept=".csv" style="display: none;">
-                <button class="btn-block" @click="triggerFileInput" style="margin-bottom: 0; border-color: var(--success); color: var(--success);">匯入 CSV 檔案</button>
+                <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-top: 5px;">
+                    💡 <b>手動新增教學</b>：先點選資料類型，點「下載格式」取得 CSV。用 Excel 開啟後，<b>刪除舊資料列（保留標題）</b>，在下方填寫想新增的資料，存檔後「從 CSV 匯入」即可。<br>
+                    <span style="color: var(--danger);">⚠️ 系統會新增 CSV 內的所有列，請勿直接匯入包含舊資料的檔案以免重複。</span>
+                </div>
             </div>
             
             <div class="group-header" style="margin-top: 25px; color: var(--danger);">危險操作</div>
@@ -666,9 +731,16 @@
             
             <div class="form-group">
                 <label>帳戶</label>
-                <select class="form-control" v-model="txForm.accountId">
+                <select class="form-control" v-model="txForm.accountId" @change="txForm.linkedAccountId = ''">
                     <option disabled value="">請選擇帳戶</option>
                     <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
+                </select>
+            </div>
+            <div class="form-group" v-if="selectedAccountIsThirdParty">
+                <label>實際扣款帳戶（若為綁定信用卡/銀行請選擇）</label>
+                <select class="form-control" v-model="txForm.linkedAccountId">
+                    <option value="">使用 {{ getAccountName(txForm.accountId) }} 餘額</option>
+                    <option v-for="acc in eligibleLinkedAccounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
                 </select>
             </div>
             <div class="form-group">
@@ -678,7 +750,7 @@
             <div class="form-group">
                 <label>備註（可點下方快速帶入）</label>
                 <div class="quick-tags" style="margin-bottom: 8px;">
-                    <span class="quick-tag" v-for="n in ['午餐', '晚餐', '咖啡', '日用品', '交通', '娛樂', '轉帳']" @click="txForm.note = n">{{ n }}</span>
+                    <span class="quick-tag" v-for="n in ['午餐', '晚餐', '咖啡', '日用品', '交通', '娛樂', '轉帳']" :key="n" @click="txForm.note = n">{{ n }}</span>
                 </div>
                 <input type="text" class="form-control" v-model="txForm.note" placeholder="新增備註...">
             </div>
@@ -695,7 +767,7 @@
             <div class="form-group">
                 <label>帳戶名稱</label>
                 <div class="quick-tags" style="margin-bottom: 8px;">
-                    <span class="quick-tag" v-for="n in ['玉山銀行', '台新銀行', '國泰世華', '永豐銀行', '現金錢包', 'LinePay', '街口支付', '悠遊卡']" @click="accForm.name = n">{{ n }}</span>
+                    <span class="quick-tag" v-for="n in ['玉山銀行', '台新銀行', '國泰世華', '永豐銀行', '現金錢包', 'LinePay', '街口支付', '悠遊卡']" :key="n" @click="accForm.name = n">{{ n }}</span>
                 </div>
                 <input type="text" class="form-control" v-model="accForm.name" placeholder="例如 玉山銀行、LinePay、現金錢包">
             </div>
@@ -711,7 +783,7 @@
                 </select>
             </div>
             <div class="form-group" v-if="accForm.type !== 'thirdparty'">
-                <label>目前餘額</label>
+                <label>{{ accForm.type === 'credit' ? '目前餘額（無欠款請填 0，有欠款請加負號）' : '目前餘額' }}</label>
                 <div class="form-control-sim" @click="openGlobalNumpad(accForm.balance, v => accForm.balance = v)" placeholder="請輸入餘額">{{ accForm.balance !== '' ? accForm.balance : '' }}</div>
             </div>
             <div class="form-group" v-if="accForm.type === 'thirdparty'">
@@ -800,9 +872,17 @@
             <div class="form-group">
                 <label>投資標的名稱</label>
                 <div class="quick-tags" style="margin-bottom: 8px;">
-                    <span class="quick-tag" v-for="t in ['0050', '0056', '00878', '台積電', '高股息', '現金股利']" @click="investForm.target = t">{{ t }}</span>
+                    <span class="quick-tag" v-for="t in ['0050', '0056', '00878', '台積電', '高股息', '現金股利']" :key="t" @click="investForm.target = t">{{ t }}</span>
                 </div>
                 <input type="text" class="form-control" v-model="investForm.target" placeholder="例如 0050、台積電">
+            </div>
+            <div class="form-group">
+                <label>成交單價 (選填)</label>
+                <div class="form-control-sim" @click="openGlobalNumpad(investForm.price, v => { investForm.price = v; calcInvestAmount(); })" placeholder="請輸入單價">{{ investForm.price !== '' ? investForm.price : '' }}</div>
+            </div>
+            <div class="form-group" v-if="investForm.type !== 'dividend'">
+                <label>股數 / 單位數 (選填)</label>
+                <div class="form-control-sim" @click="openGlobalNumpad(investForm.shares, v => { investForm.shares = v; calcInvestAmount(); })" placeholder="請輸入股數">{{ investForm.shares !== '' ? investForm.shares : '' }}</div>
             </div>
             <div class="form-group">
                 <label>金額</label>
@@ -895,6 +975,7 @@
                 const designatedInvestAccountId = ref('');
                 const investments = ref([]);
                 const notifications = ref([]);
+                const targetPrices = ref({});
                 const unreadNotifs = ref(0);
                 
                 const searchQuery = ref('');
@@ -940,6 +1021,7 @@
                             await loadWithMigration('v_fixedExpenses', fixedExpenses, []);
                             await loadWithMigration('v_investAccountId', designatedInvestAccountId, '');
                             await loadWithMigration('v_investments', investments, []);
+                            await loadWithMigration('v_targetPrices', targetPrices, {});
                             await loadWithMigration('v_notifications', notifications, []);
                             await loadWithMigration('v_googleSyncUrl', googleSyncUrl, '');
                             await loadWithMigration('v_monthlyBudget', monthlyBudget, 0);
@@ -952,6 +1034,7 @@
                             watch(fixedExpenses, (val) => localforage.setItem('v_fixedExpenses', JSON.parse(JSON.stringify(val))), { deep: true });
                             watch(designatedInvestAccountId, (val) => localforage.setItem('v_investAccountId', val));
                             watch(investments, (val) => localforage.setItem('v_investments', JSON.parse(JSON.stringify(val))), { deep: true });
+                            watch(targetPrices, (val) => localforage.setItem('v_targetPrices', JSON.parse(JSON.stringify(val))), { deep: true });
                             watch(notifications, (val) => localforage.setItem('v_notifications', JSON.parse(JSON.stringify(val))), { deep: true });
                             watch(googleSyncUrl, (val) => localforage.setItem('v_googleSyncUrl', val));
                             watch(googleSheetRange, (val) => localforage.setItem('v_googleSheetRange', val));
@@ -1021,7 +1104,7 @@
                             if (fixed.lastNotifiedDate !== notifKey) {
                                 fixed.lastNotifiedDate = notifKey;
                                 newNotifications.push({
-                                    id: Date.now() + Math.random(),
+                                    id: Date.now() + Math.floor(Math.random() * 1000),
                                     title: `繳費提醒：${fixed.name}`,
                                     message: `您的 ${fixed.name} 將於 ${targetDate.getMonth()+1}/${targetDate.getDate()} 到期，應繳金額為 ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(fixed.amount)}，請記得安排付款。`,
                                     date: currentYMD
@@ -1037,17 +1120,17 @@
                             if (fixed.lastProcessedDate !== processKey) {
                                 const acc = accounts.value.find(a => a.id === fixed.autoPayAccountId);
                                 const amount = parseInt(fixed.amount);
-                                if (acc) acc.balance -= amount;
+                                if (acc && acc.type !== 'thirdparty') acc.balance -= amount;
                                 
                                 transactions.value.push({
-                                    id: Date.now() + Math.random(), type: 'expense', accountId: fixed.autoPayAccountId,
+                                    id: Date.now() + Math.floor(Math.random() * 1000), type: 'expense', accountId: fixed.autoPayAccountId,
                                     amount: amount, category: fixed.name, date: `${currentYM}-${String(fixed.deductionDate).padStart(2, '0')}`, note: '自動扣繳'
                                 });
                                 
                                 if (fixed.hasTotal) fixed.remainingAmount = Math.max(0, fixed.remainingAmount - amount);
                                 
                                 fixed.lastProcessedDate = processKey;
-                                newNotifications.push({ id: Date.now()+Math.random(), title: `自動扣繳成功：${fixed.name}`, message: `已從 ${acc ? acc.name : '指定帳戶'} 自動扣繳 ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(amount)}`, date: currentYMD });
+                                newNotifications.push({ id: Date.now() + Math.floor(Math.random() * 1000), title: `自動扣繳成功：${fixed.name}`, message: `已從 ${acc ? acc.name : '指定帳戶'} 自動扣繳 ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(amount)}`, date: currentYMD });
                             }
                         }
                     });
@@ -1059,10 +1142,10 @@
                                     const payAcc = accounts.value.find(a => a.id === acc.autoPayAccount);
                                     const amountToPay = Math.abs(acc.balance);
                                     if (payAcc) {
-                                        payAcc.balance -= amountToPay;
-                                        acc.balance += amountToPay;
+                                        if (payAcc.type !== 'thirdparty') payAcc.balance -= amountToPay;
+                                        if (acc.type !== 'thirdparty') acc.balance += amountToPay;
                                         transactions.value.push({
-                                            id: Date.now() + Math.random(), type: 'transfer', 
+                                            id: Date.now() + Math.floor(Math.random() * 1000), type: 'transfer', 
                                             accountId: payAcc.id, toAccountId: acc.id,
                                             amount: amountToPay, category: '轉帳',
                                             date: `${currentYM}-${String(acc.autoPayDate).padStart(2, '0')}`, 
@@ -1070,7 +1153,7 @@
                                         });
                                         acc.lastProcessedDate = currentYM;
                                         newNotifications.push({ 
-                                            id: Date.now()+Math.random(), 
+                                            id: Date.now() + Math.floor(Math.random() * 1000), 
                                             title: '信用卡自動扣款成功',
                                             message: `已從 ${payAcc.name} 自動扣款至 ${acc.name}，金額 ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(amountToPay)}`, 
                                             date: currentYMD 
@@ -1082,7 +1165,7 @@
                                 if (daysUntilDue >= 0 && daysUntilDue <= 3) {
                                     acc.lastNotifiedDate = currentYM;
                                     newNotifications.push({
-                                        id: Date.now()+Math.random(),
+                                        id: Date.now() + Math.floor(Math.random() * 1000),
                                         title: '信用卡繳款提醒',
                                         message: `您的 ${acc.name} 將於 ${acc.dueDate} 日到期，應繳金額為 ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(Math.abs(acc.balance))}，請記得繳款。`,
                                         date: currentYMD
@@ -1101,6 +1184,7 @@
                 const clearNotifications = () => { notifications.value = []; unreadNotifs.value = 0; showNotifModal.value = false; };
 
                 const exportStartDate = ref(''); const exportEndDate = ref('');
+                const csvDataType = ref('transactions');
                 const showTxModal = ref(false); const showAccModal = ref(false); const showTransferModal = ref(false); const showFixedModal = ref(false); const showPayFixedModal = ref(false); const showInvestModal = ref(false); const showNotifModal = ref(false); const showTransfersModal = ref(false);
                 const editTxId = ref(null); const editAccId = ref(null); const editFixedId = ref(null);
 
@@ -1117,12 +1201,26 @@
                 };
                 const confirmGlobalNumpad = () => { if (globalNumpadCallback.value) { globalNumpadCallback.value(globalNumpadValue.value); } showGlobalNumpad.value = false; };
 
-                const txForm = ref({ type: 'expense', accountId: '', amount: '', category: '', date: new Date().toISOString().slice(0, 10), note: '' });
+                const txForm = ref({ type: 'expense', accountId: '', linkedAccountId: '', amount: '', category: '', date: new Date().toISOString().slice(0, 10), note: '' });
                 const accForm = ref({ name: '', type: 'bank', balance: '', creditLimit: '', closingDate: '', dueDate: '', autoPayDate: '', autoPayAccount: '', isInvestAccount: false });
                 const transferForm = ref({ from: '', to: '', amount: '', date: new Date().toISOString().slice(0, 10), note: '' });
                 const fixedForm = ref({ type: 'loan', name: '', cycle: 'monthly', amount: '', hasTotal: true, totalAmount: '', deductionDate: 1, deductionMonth: 1, autoPayAccountId: '' });
                 const payFixedState = ref({ item: null, accountId: '', date: new Date().toISOString().slice(0, 10) });
-                const investForm = ref({ type: 'buy', target: '', amount: '', accountId: '', date: new Date().toISOString().slice(0, 10) });
+                const investForm = ref({ type: 'buy', target: '', amount: '', shares: '', price: '', accountId: '', date: new Date().toISOString().slice(0, 10) });
+
+                const calcInvestAmount = () => {
+                    if (investForm.value.price && investForm.value.shares) {
+                        investForm.value.amount = Math.round(Number(investForm.value.price) * Number(investForm.value.shares)).toString();
+                    }
+                };
+
+                const updateTargetPrice = (targetName, currentPrice) => {
+                    openGlobalNumpad(currentPrice || '', (newPrice) => {
+                        if(newPrice !== '') {
+                            targetPrices.value = { ...targetPrices.value, [targetName]: Number(newPrice) };
+                        }
+                    });
+                };
 
                 const expenseCategories = ['飲食', '交通', '轉帳', '娛樂', '醫療', '家居', '其他', '繳費'];
                 const incomeCategories = ['薪水', '獎金', '投資收益', '副業收入', '退款', '其他'];
@@ -1160,7 +1258,16 @@
                 const loansAndInsurances = computed(() => fixedExpenses.value.filter(f => f.type !== 'subscription'));
                 const investAccounts = computed(() => accounts.value.filter(a => a.isInvestAccount));
 
-                const openAddTx = () => { txForm.value = { type: 'expense', accountId: accounts.value.length ? accounts.value[0].id : '', amount: '', category: '', date: new Date().toISOString().slice(0, 10), note: '' }; editTxId.value = null; showTxModal.value = true; };
+                const selectedAccountIsThirdParty = computed(() => {
+                    const acc = accounts.value.find(a => a.id === txForm.value.accountId);
+                    return acc && (acc.type === 'epay' || acc.type === 'thirdparty');
+                });
+                
+                const eligibleLinkedAccounts = computed(() => {
+                    return accounts.value.filter(a => a.id !== txForm.value.accountId && a.type !== 'thirdparty');
+                });
+
+                const openAddTx = () => { txForm.value = { type: 'expense', accountId: accounts.value.length ? accounts.value[0].id : '', linkedAccountId: '', amount: '', category: '', date: new Date().toISOString().slice(0, 10), note: '' }; editTxId.value = null; showTxModal.value = true; };
 
                 const inputNum = (val) => {
                     let currentAmount = String(txForm.value.amount || '');
@@ -1171,7 +1278,7 @@
 
                 const openEditTxOrTransfer = (tx) => {
                     if (tx.type === 'transfer') { transferForm.value = { from: tx.accountId, to: tx.toAccountId, amount: tx.amount, date: tx.date, note: tx.originalNote || '' }; editTxId.value = tx.id; showTransferModal.value = true; } 
-                    else { txForm.value = { ...tx }; editTxId.value = tx.id; showTxModal.value = true; }
+                    else { txForm.value = { linkedAccountId: '', ...tx }; editTxId.value = tx.id; showTxModal.value = true; }
                 };
 
                 const adjustBalance = (acc, txType, amount, reverse = false) => {
@@ -1184,18 +1291,27 @@
                 const saveTransaction = () => {
                     if (!txForm.value.amount || !txForm.value.category || !txForm.value.accountId) return alert('請填寫完整交易資料');
                     const amount = parseInt(txForm.value.amount);
+                    
+                    const accType = accounts.value.find(a => a.id === txForm.value.accountId)?.type;
+                    if (accType !== 'epay' && accType !== 'thirdparty') {
+                        txForm.value.linkedAccountId = '';
+                    }
+
                     if (editTxId.value) {
                         const oldTx = transactions.value.find(t => t.id === editTxId.value);
                         if (oldTx) {
-                            const oldAcc = accounts.value.find(a => a.id === oldTx.accountId);
+                            const oldTargetId = oldTx.linkedAccountId || oldTx.accountId;
+                            const oldAcc = accounts.value.find(a => a.id === oldTargetId);
                             adjustBalance(oldAcc, oldTx.type, oldTx.amount, true);
-                            const newAcc = accounts.value.find(a => a.id === txForm.value.accountId);
+                            const newTargetId = txForm.value.linkedAccountId || txForm.value.accountId;
+                            const newAcc = accounts.value.find(a => a.id === newTargetId);
                             adjustBalance(newAcc, txForm.value.type, amount, false);
                             const idx = transactions.value.findIndex(t => t.id === editTxId.value);
                             transactions.value[idx] = { ...txForm.value, id: editTxId.value, amount };
                         }
                     } else {
-                        const acc = accounts.value.find(a => a.id === txForm.value.accountId);
+                        const targetId = txForm.value.linkedAccountId || txForm.value.accountId;
+                        const acc = accounts.value.find(a => a.id === targetId);
                         adjustBalance(acc, txForm.value.type, amount, false);
                         transactions.value.push({ id: Date.now(), ...txForm.value, amount });
                     }
@@ -1207,7 +1323,8 @@
                     const txIndex = transactions.value.findIndex(t => t.id === id);
                     if (txIndex > -1) {
                         const tx = transactions.value[txIndex];
-                        const acc = accounts.value.find(a => a.id === tx.accountId);
+                        const targetId = tx.linkedAccountId || tx.accountId;
+                        const acc = accounts.value.find(a => a.id === targetId);
                         if (acc) {
                             if (tx.type === 'expense') adjustBalance(acc, tx.type, tx.amount, true);
                             else if (tx.type === 'income') adjustBalance(acc, tx.type, tx.amount, true);
@@ -1225,6 +1342,42 @@
                 };
 
                 const getAccountName = (id) => { const acc = accounts.value.find(a => a.id === id); return acc ? acc.name : '未知帳戶'; };
+                
+                const getCreditCardDetails = (acc) => {
+                    let totalOwed = acc.balance < 0 ? Math.abs(acc.balance) : 0;
+                    if (acc.type !== 'credit' || !acc.closingDate) return { billed: 0, unbilled: totalOwed };
+                    
+                    const today = new Date();
+                    let year = today.getFullYear();
+                    let month = today.getMonth();
+                    let targetDate = parseInt(acc.closingDate);
+                    
+                    if (today.getDate() <= targetDate) {
+                        month -= 1;
+                        if (month < 0) { month = 11; year -= 1; }
+                    }
+                    
+                    let d = new Date(year, month, targetDate);
+                    if (d.getMonth() !== month) { d = new Date(year, month + 1, 0); }
+                    const pad = (n) => String(n).padStart(2, '0');
+                    const lastClosingDateStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+                    
+                    let unbilled = 0;
+                    transactions.value.forEach(tx => {
+                        const isTarget = tx.accountId === acc.id || tx.linkedAccountId === acc.id;
+                        if (isTarget && tx.date > lastClosingDateStr) {
+                            if (tx.type === 'expense') unbilled += parseInt(tx.amount);
+                            else if (tx.type === 'income') unbilled -= parseInt(tx.amount);
+                        }
+                    });
+                    
+                    unbilled = Math.max(0, unbilled);
+                    unbilled = Math.min(unbilled, totalOwed); // 避免溢繳時未出帳大於總應繳
+                    let billed = totalOwed - unbilled;
+
+                    return { billed, unbilled };
+                };
+
                 const totalAssets = computed(() => accounts.value.filter(a => a.type !== 'credit' && a.type !== 'thirdparty').reduce((sum, a) => sum + Number(a.balance), 0));
                 const accountTypeFilter = ref('all');
                 const filteredAccountsByType = computed(() => {
@@ -1260,7 +1413,7 @@
                             const newFrom = fromAcc; const newTo = toAcc;
                             if (newFrom) newFrom.balance -= amount; if (newTo) newTo.balance += amount;
                             const idx = transactions.value.findIndex(t => t.id === editTxId.value);
-                            transactions.value[idx] = { ...oldTx, accountId: transferForm.value.from, toAccountId: transferForm.value.to, amount: amount, date: transferForm.value.date, note: `頧 ${newTo ? newTo.name : '?芰'} ` + (transferForm.value.note ? `(${transferForm.value.note})` : ''), originalNote: transferForm.value.note };
+                            transactions.value[idx] = { ...oldTx, accountId: transferForm.value.from, toAccountId: transferForm.value.to, amount: amount, date: transferForm.value.date, note: `轉入 ${newTo ? newTo.name : '未知'} ` + (transferForm.value.note ? `(${transferForm.value.note})` : ''), originalNote: transferForm.value.note };
                         }
                     } else {
                         if (fromAcc && toAcc) {
@@ -1271,7 +1424,7 @@
                     showTransferModal.value = false;
                 };
 
-                const deleteAccount = (id) => { if (!confirm('確定要刪除這個帳戶嗎？')) return; accounts.value = accounts.value.filter(a => a.id !== id); if(txForm.value.accountId === id) txForm.value.accountId = ''; };
+                const deleteAccount = (id) => { if (!confirm('確定要刪除這個帳戶嗎？')) return; accounts.value = accounts.value.filter(a => a.id !== id); if(txForm.value.accountId === id) txForm.value.accountId = ''; if(txForm.value.linkedAccountId === id) txForm.value.linkedAccountId = ''; };
 
                 const openAddFixed = (defaultType = 'loan') => { fixedForm.value = { type: defaultType, name: '', cycle: 'monthly', amount: '', hasTotal: defaultType !== 'subscription', totalAmount: '', deductionDate: 1, deductionMonth: 1, autoPayAccountId: '' }; editFixedId.value = null; showFixedModal.value = true; };
                 const openEditFixed = (item) => { fixedForm.value = { ...item }; if (!fixedForm.value.deductionDate) fixedForm.value.deductionDate = 1; editFixedId.value = item.id; showFixedModal.value = true; };
@@ -1293,14 +1446,84 @@
                 const openPayModal = (item) => { payFixedState.value.item = item; payFixedState.value.accountId = accounts.value.length > 0 ? accounts.value[0].id : ''; payFixedState.value.date = new Date().toISOString().slice(0, 10); showPayFixedModal.value = true; };
                 const executePayFixed = () => {
                     const item = payFixedState.value.item; if (!item || !payFixedState.value.accountId) return alert('請選擇付款帳戶');
-                    const amount = parseInt(item.amount); const acc = accounts.value.find(a => a.id === payFixedState.value.accountId); if (acc) acc.balance -= amount;
+                    const amount = parseInt(item.amount); const acc = accounts.value.find(a => a.id === payFixedState.value.accountId); if (acc && acc.type !== 'thirdparty') acc.balance -= amount;
                     transactions.value.push({ id: Date.now(), type: 'expense', accountId: payFixedState.value.accountId, amount: amount, category: item.name, date: payFixedState.value.date, note: '固定支出付款' });
                     if (item.hasTotal) { const idx = fixedExpenses.value.findIndex(f => f.id === item.id); if(idx > -1) fixedExpenses.value[idx].remainingAmount = Math.max(0, fixedExpenses.value[idx].remainingAmount - amount); }
                     showPayFixedModal.value = false; alert('付款已完成，並同步更新帳戶與剩餘金額');
                 };
 
-                const sortedInvestments = computed(() => [...investments.value].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-                const investTotalPrincipal = computed(() => investments.value.reduce((sum, inv) => { if (inv.type === 'buy') return sum + Number(inv.amount); if (inv.type === 'sell') return sum - Number(inv.amount); return sum; }, 0));
+                const investSelectedYear = ref('all');
+                const investYears = computed(() => {
+                    const years = new Set(investments.value.map(i => i.date.substring(0, 4)));
+                    return Array.from(years).sort((a, b) => b - a);
+                });
+
+                const sortedInvestments = computed(() => {
+                    let invs = investments.value;
+                    if (investSelectedYear.value !== 'all') {
+                        invs = invs.filter(i => i.date.startsWith(investSelectedYear.value));
+                    }
+                    return [...invs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                });
+                
+                const investmentTargets = computed(() => {
+                    const targets = {};
+                    const sortedInvs = [...investments.value].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                    
+                    sortedInvs.forEach(inv => {
+                        if (!targets[inv.target]) {
+                            targets[inv.target] = { name: inv.target, totalShares: 0, totalCost: 0, realizedPnL: 0, dividend: 0 };
+                        }
+                        const t = targets[inv.target];
+                        const shares = Number(inv.shares) || 0;
+                        const amount = Number(inv.amount) || 0;
+                        
+                        const isSelectedYear = investSelectedYear.value === 'all' || inv.date.startsWith(investSelectedYear.value);
+
+                        if (inv.type === 'buy') {
+                            t.totalShares += shares;
+                            t.totalCost += amount;
+                        } else if (inv.type === 'sell') {
+                            if (t.totalShares > 0 && shares > 0) {
+                                const avgCost = t.totalCost / t.totalShares;
+                                const costOfSold = avgCost * shares;
+                                if (isSelectedYear) t.realizedPnL += (amount - costOfSold);
+                                t.totalShares -= shares;
+                                t.totalCost -= costOfSold;
+                            } else {
+                                if (amount <= t.totalCost) { 
+                                    t.totalCost -= amount; 
+                                } else { 
+                                    if (isSelectedYear) t.realizedPnL += (amount - t.totalCost); 
+                                    t.totalCost = 0; 
+                                }
+                            }
+                        } else if (inv.type === 'dividend') {
+                            if (isSelectedYear) {
+                                t.realizedPnL += amount;
+                                t.dividend += amount;
+                            }
+                        }
+                    });
+
+                    Object.values(targets).forEach(t => {
+                        t.currentPrice = targetPrices.value[t.name] || 0;
+                        if (t.totalShares > 0) {
+                            t.currentValue = t.totalShares * t.currentPrice;
+                            t.unrealizedPnL = t.currentValue - t.totalCost;
+                        } else {
+                            t.currentValue = 0;
+                            t.unrealizedPnL = 0;
+                        }
+                    });
+
+                    return Object.values(targets).filter(t => t.totalShares > 0 || t.realizedPnL !== 0 || t.totalCost > 0);
+                });
+
+                const investTotalCost = computed(() => investmentTargets.value.reduce((sum, t) => sum + t.totalCost, 0));
+                const investTotalValue = computed(() => investmentTargets.value.reduce((sum, t) => sum + t.currentValue, 0));
+                const investTotalUnrealized = computed(() => investmentTargets.value.reduce((sum, t) => sum + t.unrealizedPnL, 0));
+                const investTotalRealized = computed(() => investmentTargets.value.reduce((sum, t) => sum + t.realizedPnL, 0));
                 
                 const assetAllocations = computed(() => {
                     let cash = 0; let bank = 0; let epay = 0; let iccard = 0;
@@ -1312,7 +1535,7 @@
                             else if (a.type === 'iccard') iccard += a.balance;
                         }
                     });
-                    const invest = investTotalPrincipal.value > 0 ? investTotalPrincipal.value : 0;
+                    const invest = investTotalValue.value > 0 ? investTotalValue.value : (investTotalCost.value > 0 ? investTotalCost.value : 0);
                     const totalPositive = cash + bank + epay + iccard + invest;
                     if (totalPositive === 0) return [];
                     const result = [];
@@ -1326,16 +1549,16 @@
                     return result.sort((a,b) => b.amount - a.amount);
                 });
                 
-                const openAddInvest = () => { investForm.value = { type: 'buy', target: '', amount: '', accountId: accounts.value.length ? accounts.value[0].id : '', date: new Date().toISOString().slice(0, 10) }; showInvestModal.value = true; };
+                const openAddInvest = () => { investForm.value = { type: 'buy', target: '', amount: '', shares: '', price: '', accountId: accounts.value.length ? accounts.value[0].id : '', date: new Date().toISOString().slice(0, 10) }; showInvestModal.value = true; };
                 const saveInvest = () => {
                     if (!investForm.value.target || !investForm.value.amount || !investForm.value.accountId) return alert('請填寫完整投資資料');
                     const amount = parseInt(investForm.value.amount); const acc = accounts.value.find(a => a.id === investForm.value.accountId);
-                    if (acc) { if (investForm.value.type === 'buy') acc.balance -= amount; else acc.balance += amount; }
+                    if (acc && acc.type !== 'thirdparty') { if (investForm.value.type === 'buy') acc.balance -= amount; else acc.balance += amount; }
                     investments.value.push({ id: Date.now(), ...investForm.value, amount }); showInvestModal.value = false;
                 };
                 const deleteInvest = (id) => {
                     if (!confirm('確定要刪除這筆投資紀錄嗎？')) return; const idx = investments.value.findIndex(i => i.id === id);
-                    if (idx > -1) { const inv = investments.value[idx]; const acc = accounts.value.find(a => a.id === inv.accountId); if (acc) { if (inv.type === 'buy') acc.balance += inv.amount; else acc.balance -= inv.amount; } investments.value.splice(idx, 1); }
+                    if (idx > -1) { const inv = investments.value[idx]; const acc = accounts.value.find(a => a.id === inv.accountId); if (acc && acc.type !== 'thirdparty') { if (inv.type === 'buy') acc.balance += inv.amount; else acc.balance -= inv.amount; } investments.value.splice(idx, 1); }
                 };
 
                 const syncToCloud = async (isSilent = false) => {
@@ -1348,6 +1571,7 @@
                             accounts: accounts.value,
                             fixedExpenses: fixedExpenses.value,
                             investments: investments.value,
+                            targetPrices: targetPrices.value,
                             range: googleSheetRange.value || ''
                         };
                         const formBody = new URLSearchParams({
@@ -1393,6 +1617,7 @@
                             accounts.value = data.accounts || [];
                             fixedExpenses.value = data.fixedExpenses || [];
                             investments.value = data.investments || [];
+                            targetPrices.value = data.targetPrices || {};
                             syncStatus.value = '下載成功';
                             alert('已成功從雲端載入資料');
                         } else {
@@ -1410,16 +1635,47 @@
                 const secureCSV = (val) => { if (!val) return '""'; let str = String(val).replace(/"/g, '""'); if (/^[=\+\-@\t\r]/.test(str)) str = "'" + str; return `"${str}"`; };
                 const exportCSV = () => {
                     try {
-                        let csvContent = "\uFEFF年,月,日,收支,分類,備註,金額\n"; let filteredTxs = [...transactions.value];
-                        if (exportStartDate.value) filteredTxs = filteredTxs.filter(t => t.date >= exportStartDate.value);
-                        if (exportEndDate.value) filteredTxs = filteredTxs.filter(t => t.date <= exportEndDate.value);
-                        filteredTxs.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).forEach(t => {
-                            const dateParts = t.date.split('-'); if (dateParts.length !== 3) return;
-                            const finalAmount = (t.type === 'expense' || t.type === 'transfer') ? -t.amount : t.amount;
-                            csvContent += `${dateParts[0]},${parseInt(dateParts[1])},${parseInt(dateParts[2])},${(t.type === 'expense' || t.type === 'transfer') ? '支出' : '收入'},${secureCSV(t.category)},${secureCSV(t.note)},${finalAmount}\n`;
-                        });
-                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `記帳資料.csv`; link.click();
-                    } catch (e) { alert('匯出失敗'); }
+                        let csvContent = "\uFEFF";
+                        let fileName = "記帳資料.csv";
+
+                        if (csvDataType.value === 'transactions') {
+                            csvContent += "日期,收支,分類,帳戶,金額,備註\n"; 
+                            let filteredTxs = [...transactions.value];
+                            if (exportStartDate.value) filteredTxs = filteredTxs.filter(t => t.date >= exportStartDate.value);
+                            if (exportEndDate.value) filteredTxs = filteredTxs.filter(t => t.date <= exportEndDate.value);
+                            filteredTxs.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).forEach(t => {
+                                const typeLabel = (t.type === 'expense' || t.type === 'transfer') ? '支出' : '收入';
+                                const accountName = getAccountName(t.accountId);
+                                csvContent += `${t.date},${typeLabel},${secureCSV(t.category)},${secureCSV(accountName)},${t.amount},${secureCSV(t.note)}\n`;
+                            });
+                            fileName = "記帳明細.csv";
+                        } else if (csvDataType.value === 'accounts') {
+                            csvContent += "帳戶名稱,帳戶類型(bank/wallet/epay/credit/iccard),目前餘額,信用卡額度,結帳日,繳款日,投資帳戶(是/否)\n";
+                            accounts.value.forEach(a => {
+                                csvContent += `${secureCSV(a.name)},${a.type},${a.balance},${a.creditLimit || ''},${a.closingDate || ''},${a.dueDate || ''},${a.isInvestAccount ? '是' : '否'}\n`;
+                            });
+                            fileName = "帳戶清單.csv";
+                        } else if (csvDataType.value === 'fixedExpenses') {
+                            csvContent += "名稱,類型(loan/insurance/subscription),週期(monthly/yearly),每期金額,追蹤總額(是/否),總金額,扣款日,扣款月\n";
+                            fixedExpenses.value.forEach(f => {
+                                csvContent += `${secureCSV(f.name)},${f.type},${f.cycle},${f.amount},${f.hasTotal ? '是' : '否'},${f.totalAmount || ''},${f.deductionDate || ''},${f.deductionMonth || ''}\n`;
+                            });
+                            fileName = "固定支出.csv";
+                        } else if (csvDataType.value === 'investments') {
+                            csvContent += "日期,類型(buy/sell/dividend),標的,單價,股數,總金額,帳戶\n";
+                            investments.value.forEach(inv => {
+                                const accountName = getAccountName(inv.accountId);
+                                csvContent += `${inv.date},${inv.type},${secureCSV(inv.target)},${inv.price || ''},${inv.shares || ''},${inv.amount},${secureCSV(accountName)}\n`;
+                            });
+                            fileName = "投資紀錄.csv";
+                        }
+
+                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); 
+                        const link = document.createElement("a"); 
+                        link.href = URL.createObjectURL(blob); 
+                        link.download = fileName; 
+                        link.click();
+                    } catch (e) { alert('匯出失敗: ' + e.message); }
                 };
                 const triggerFileInput = () => document.getElementById('fileInput').click();
                 const handleFileUpload = (event) => {
@@ -1429,17 +1685,137 @@
                 const importCSV = (csvText) => {
                     try {
                         const lines = csvText.split('\n').map(l => l.trim()).filter(l => l); if (lines.length <= 1) return; let addedCount = 0;
-                        for (let i = 1; i < lines.length; i++) {
-                            const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || []; if (row.length < 7) continue;
-                            const clean = (val) => val ? val.replace(/^"|"$/g, '').replace(/""/g, '"').replace(/^'/, '') : ''; 
-                            const year = parseInt(clean(row[0]).replace(/,/g, '')); const month = parseInt(clean(row[1])); const day = parseInt(clean(row[2])); let rawAmount = parseInt(clean(row[6]).replace(/,/g, ''));
-                            if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(rawAmount)) continue;
-                            const type = (clean(row[3]).includes('收入') || rawAmount > 0) ? 'income' : 'expense';
-                            transactions.value.push({ id: Date.now() + i + Math.floor(Math.random()*1000), type, date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`, category: clean(row[4]), amount: Math.abs(rawAmount), accountId: accounts.value.length ? accounts.value[0].id : '', note: clean(row[5]) });
-                            addedCount++;
+                        const header = lines[0];
+
+                        if (header.includes('帳戶名稱') && header.includes('目前餘額')) {
+                            // Accounts
+                            for (let i = 1; i < lines.length; i++) {
+                                const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || []; 
+                                const clean = (val) => val ? val.replace(/^"|"$/g, '').replace(/""/g, '"').replace(/^'/, '') : ''; 
+                                if (row.length < 3) continue;
+                                const name = clean(row[0]);
+                                const type = clean(row[1]) || 'wallet';
+                                const balance = parseInt(clean(row[2]).replace(/,/g, '')) || 0;
+                                const creditLimit = parseInt(clean(row[3])?.replace(/,/g, '')) || 0;
+                                const closingDate = parseInt(clean(row[4])) || null;
+                                const dueDate = parseInt(clean(row[5])) || null;
+                                const isInvestAccount = clean(row[6]) === '是';
+                                
+                                if (!name) continue;
+                                accounts.value.push({
+                                    id: Date.now() + i + Math.floor(Math.random()*1000),
+                                    name, type, balance, creditLimit, closingDate, dueDate, isInvestAccount,
+                                    autoPayDate: null, autoPayAccount: null
+                                });
+                                addedCount++;
+                            }
+                        } else if (header.includes('週期') && header.includes('每期金額')) {
+                            // Fixed Expenses
+                            for (let i = 1; i < lines.length; i++) {
+                                const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || []; 
+                                const clean = (val) => val ? val.replace(/^"|"$/g, '').replace(/""/g, '"').replace(/^'/, '') : ''; 
+                                if (row.length < 4) continue;
+                                const name = clean(row[0]);
+                                const type = clean(row[1]) || 'subscription';
+                                const cycle = clean(row[2]) || 'monthly';
+                                const amount = parseInt(clean(row[3]).replace(/,/g, '')) || 0;
+                                const hasTotal = clean(row[4]) === '是';
+                                const totalAmount = parseInt(clean(row[5])?.replace(/,/g, '')) || 0;
+                                const deductionDate = parseInt(clean(row[6])) || 1;
+                                const deductionMonth = parseInt(clean(row[7])) || 1;
+
+                                if (!name || !amount) continue;
+                                fixedExpenses.value.push({
+                                    id: Date.now() + i + Math.floor(Math.random()*1000),
+                                    name, type, cycle, amount, hasTotal, totalAmount, deductionDate, deductionMonth,
+                                    remainingAmount: totalAmount, autoPayAccountId: null
+                                });
+                                addedCount++;
+                            }
+                        } else if (header.includes('標的') && header.includes('股數')) {
+                            // Investments
+                            for (let i = 1; i < lines.length; i++) {
+                                const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || []; 
+                                const clean = (val) => val ? val.replace(/^"|"$/g, '').replace(/""/g, '"').replace(/^'/, '') : ''; 
+                                if (row.length < 6) continue;
+                                const dateStr = clean(row[0]).replace(/\//g, '-');
+                                const type = clean(row[1]) || 'buy';
+                                const target = clean(row[2]);
+                                const price = clean(row[3]);
+                                const shares = clean(row[4]);
+                                const amount = parseInt(clean(row[5]).replace(/,/g, '')) || 0;
+                                const accountName = clean(row[6]);
+
+                                const acc = accounts.value.find(a => a.name === accountName) || (accounts.value.length ? accounts.value[0] : null);
+                                const accountId = acc ? acc.id : '';
+
+                                if (!target || !amount) continue;
+                                
+                                const dParts = dateStr.split('-');
+                                const formattedDate = dParts.length === 3 ? `${dParts[0]}-${String(dParts[1]).padStart(2, '0')}-${String(dParts[2]).padStart(2, '0')}` : dateStr;
+
+                                investments.value.push({
+                                    id: Date.now() + i + Math.floor(Math.random()*1000),
+                                    date: formattedDate, type, target, price, shares, amount, accountId
+                                });
+                                
+                                if (acc && acc.type !== 'thirdparty') {
+                                    if (type === 'buy') acc.balance -= amount;
+                                    else if (type === 'sell' || type === 'dividend') acc.balance += amount;
+                                }
+                                addedCount++;
+                            }
+                        } else {
+                            // Transactions
+                            const isNewFormat = header.includes('日期') && header.includes('帳戶');
+                            for (let i = 1; i < lines.length; i++) {
+                                const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || []; 
+                                const clean = (val) => val ? val.replace(/^"|"$/g, '').replace(/""/g, '"').replace(/^'/, '') : ''; 
+                                
+                                if (isNewFormat) {
+                                    if (row.length < 6) continue;
+                                    const dateStr = clean(row[0]).replace(/\//g, '-');
+                                    const typeStr = clean(row[1]);
+                                    const category = clean(row[2]);
+                                    const accountName = clean(row[3]);
+                                    let rawAmount = parseInt(clean(row[4]).replace(/,/g, ''));
+                                    const note = clean(row[5]);
+                                    
+                                    if (isNaN(rawAmount) || !dateStr) continue;
+                                    const type = typeStr.includes('收入') ? 'income' : 'expense';
+                                    const acc = accounts.value.find(a => a.name === accountName) || (accounts.value.length ? accounts.value[0] : null);
+                                    const accountId = acc ? acc.id : '';
+                                    const amount = Math.abs(rawAmount);
+                                    
+                                    const dParts = dateStr.split('-');
+                                    const formattedDate = dParts.length === 3 ? `${dParts[0]}-${String(dParts[1]).padStart(2, '0')}-${String(dParts[2]).padStart(2, '0')}` : dateStr;
+
+                                    transactions.value.push({ id: Date.now() + i + Math.floor(Math.random()*1000), type, date: formattedDate, category, amount, accountId, note });
+                                    if (acc && acc.type !== 'thirdparty') {
+                                        if (type === 'expense') acc.balance -= amount;
+                                        else if (type === 'income') acc.balance += amount;
+                                    }
+                                    addedCount++;
+                                } else {
+                                    if (row.length < 7) continue;
+                                    const year = parseInt(clean(row[0]).replace(/,/g, '')); const month = parseInt(clean(row[1])); const day = parseInt(clean(row[2])); let rawAmount = parseInt(clean(row[6]).replace(/,/g, ''));
+                                    if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(rawAmount)) continue;
+                                    const type = (clean(row[3]).includes('收入') || rawAmount > 0) ? 'income' : 'expense';
+                                    const amount = Math.abs(rawAmount);
+                                    const acc = accounts.value.length ? accounts.value[0] : null;
+                                    const accountId = acc ? acc.id : '';
+
+                                    transactions.value.push({ id: Date.now() + i + Math.floor(Math.random()*1000), type, date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`, category: clean(row[4]), amount, accountId, note: clean(row[5]) });
+                                    if (acc && acc.type !== 'thirdparty') {
+                                        if (type === 'expense') acc.balance -= amount;
+                                        else if (type === 'income') acc.balance += amount;
+                                    }
+                                    addedCount++;
+                                }
+                            }
                         }
-                        if (addedCount > 0) alert(`已匯入 ${addedCount} 筆`);
-                    } catch (e) { alert('匯入失敗'); }
+                        if (addedCount > 0) alert(`已成功匯入 ${addedCount} 筆資料`);
+                    } catch (e) { alert('匯入失敗: ' + e.message); }
                 };
                 const clearAllData = () => { if (prompt('輸入 "delete" 以清除所有資料') === 'delete') { transactions.value = []; accounts.value = []; fixedExpenses.value = []; investments.value = []; if (typeof localforage !== 'undefined') { localforage.setItem('v_transactions', []); localforage.setItem('v_accounts', []); localforage.setItem('v_fixedExpenses', []); localforage.setItem('v_investments', []); } alert('資料已清除'); } };
                 const installPwaApp = async () => {
@@ -1466,18 +1842,19 @@ isPrivacyMode, monthlyBudget, showExpenseAnalysis, assetAllocations, accountType
                     
                     showTxModal, showAccModal, showTransferModal, showFixedModal, showPayFixedModal, showInvestModal, showNotifModal, showExpenseAnalysis, showTransfersModal,
                     editTxId, editAccId, editFixedId, txForm, accForm, transferForm, fixedForm, payFixedState, investForm,
-                    exportStartDate, exportEndDate, expenseCategories, incomeCategories,
+                    exportStartDate, exportEndDate, csvDataType, expenseCategories, incomeCategories,
                     currentMonthTransactions, transferTransactions, filteredTransactions, searchNoResults, monthlyIncome, monthlyExpense, monthlyBalance, groupedTransactions, expenseAnalysis,
-                    investments, sortedInvestments, investTotalPrincipal, openAddInvest, saveInvest, deleteInvest,
+                    investments, sortedInvestments, investmentTargets, investTotalCost, investTotalValue, investTotalUnrealized, investTotalRealized, updateTargetPrice, calcInvestAmount, openAddInvest, saveInvest, deleteInvest, investSelectedYear, investYears,
                     notifications, unreadNotifs, clearNotifications, searchQuery, googleSyncUrl, googleSheetRange, syncStatus, isSyncing, isDarkMode, syncToCloud, syncFromCloud,
-                    totalAssets, typeLabel, openAddTx, openEditTxOrTransfer, saveTransaction, deleteTransaction, getAccountName,
+                    totalAssets, typeLabel, openAddTx, openEditTxOrTransfer, saveTransaction, deleteTransaction, getAccountName, getCreditCardDetails,
                     openAddAcc, openEditAcc, saveAccount, deleteAccount, openAddTransfer, saveTransfer,
                     openAddFixed, openEditFixed, saveFixedExpense, deleteFixed, openPayModal, executePayFixed,
                     exportCSV, triggerFileInput, handleFileUpload, clearAllData, formatCurrency, inputNum,
                     canInstallApp, installPwaApp,
                     
                     showGlobalNumpad, globalNumpadValue, openGlobalNumpad, inputGlobalNum, confirmGlobalNumpad,
-                    subscriptions, loansAndInsurances, investAccounts
+                    subscriptions, loansAndInsurances, investAccounts,
+                    selectedAccountIsThirdParty, eligibleLinkedAccounts
                 };
             }
         }).mount('#app');
