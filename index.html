@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://script.google.com https://script.googleusercontent.com data:; img-src 'self' data:; manifest-src 'self' data:; object-src 'none'; base-uri 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://script.google.com https://script.googleusercontent.com data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://openapi.twse.com.tw https://www.tpex.org.tw https://query1.finance.yahoo.com; img-src 'self' data:; manifest-src 'self' data:; object-src 'none'; base-uri 'none';">
     <title>Tasuto Money</title>
     <meta name="theme-color" content="#f5f6fa">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -213,6 +213,10 @@
             font-size: 16px;
             line-height: 1;
         }
+        .price-action-row { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .price-chip { cursor: pointer; color: var(--primary); font-weight: bold; background: var(--tag-bg); padding: 2px 8px; border-radius: 10px; border: none; font-size: 13px; }
+        .mini-price-btn { border: none; background: var(--primary); color: #fff; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; font-weight: bold; line-height: 1; }
+        .mini-price-btn:disabled, .action-btn:disabled { opacity: 0.55; cursor: wait; }
     </style>
 </head>
 <body>
@@ -224,7 +228,7 @@
                 <div style="display: flex; gap: 15px; font-size: 22px; user-select: none;">
                     <span @click="isPrivacyMode = !isPrivacyMode" style="cursor:pointer; filter: grayscale(0.2);">{{ isPrivacyMode ? '🙈' : '👁️' }}</span>
                 </div>
-                <div class="header-title">記帳明細</div>
+                <div class="header-title">Tasuto Money 記帳</div>
                 <div class="bell-icon" @click="showNotifModal = true">
                     🔔<div class="red-dot" v-if="unreadNotifs > 0"></div>
                 </div>
@@ -412,7 +416,7 @@
                     <div class="item-header">
                         <span class="item-title">{{ acc.name }}</span>
                         <span class="item-amount" :class="acc.type === 'credit' && acc.balance < 0 ? 'expense' : ''">
-                            {{ acc.type === 'credit' ? (acc.balance < 0 ? '應繳 ' + formatCurrency(Math.abs(acc.balance)) : (acc.balance > 0 ? '溢繳 ' + formatCurrency(acc.balance) : '應繳 ' + formatCurrency(0))) : formatCurrency(acc.balance) }}
+                            {{ acc.type === 'credit' ? getCreditCardDisplayAmount(acc) : formatCurrency(acc.balance) }}
                         </span>
                     </div>
                     <div class="item-footer">
@@ -533,7 +537,10 @@
 
             <button class="btn-block" @click="openAddInvest">+ 新增投資紀錄</button>
 
-            <div class="group-header">目前持有標的與損益</div>
+            <div style="display:flex; justify-content: space-between; align-items: center; margin: 15px 0 8px 5px;">
+                <div class="group-header" style="margin:0;">目前持有標的與損益</div>
+                <button v-if="investmentTargets.length > 0" class="action-btn" @click="refreshAllTargetPrices" :disabled="isUpdatingPrices">{{ isUpdatingPrices ? '更新中' : '自動更新現價' }}</button>
+            </div>
             <div v-if="investmentTargets.length === 0" class="empty-state">尚無投資標的</div>
             <div class="list-card" v-for="t in investmentTargets" :key="t.name" style="flex-direction: column; align-items: stretch;">
                 <div class="item-header" style="margin-bottom: 10px;">
@@ -544,8 +551,11 @@
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--border);">
                     <span>持有 {{ t.totalShares }} 股 | 均價 {{ t.totalShares > 0 ? (t.totalCost / t.totalShares).toFixed(2) : 0 }}</span>
-                    <span style="cursor: pointer; color: var(--primary); font-weight: bold; background: var(--tag-bg); padding: 2px 8px; border-radius: 10px;" @click="updateTargetPrice(t.name, t.currentPrice)">
-                        現價 {{ t.currentPrice || '點擊設定' }} ✎
+                    <span class="price-action-row">
+                        <button class="price-chip" @click="updateTargetPrice(t.name, t.currentPrice)">
+                            現價 {{ t.currentPrice ? formatPrice(t.currentPrice) : '點擊設定' }} ✎
+                        </button>
+                        <button class="mini-price-btn" @click="refreshTargetPrice(t.name)" :disabled="isUpdatingPrices" title="自動更新現價">↻</button>
                     </span>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
@@ -878,7 +888,7 @@
             </div>
             <div class="form-group">
                 <label>成交單價 (選填)</label>
-                <div class="form-control-sim" @click="openGlobalNumpad(investForm.price, v => { investForm.price = v; calcInvestAmount(); })" placeholder="請輸入單價">{{ investForm.price !== '' ? investForm.price : '' }}</div>
+                <div class="form-control-sim" @click="openGlobalNumpad(investForm.price, v => { investForm.price = v === '' ? '' : Number(v).toFixed(2); calcInvestAmount(); }, { decimals: true, decimalPlaces: 2, maxLength: 12, allowNegative: false })" placeholder="請輸入單價">{{ investForm.price !== '' ? investForm.price : '' }}</div>
             </div>
             <div class="form-group" v-if="investForm.type !== 'dividend'">
                 <label>股數 / 單位數 (選填)</label>
@@ -905,6 +915,7 @@
                 <button v-for="n in 9" :key="'gnum-'+n" @click="inputGlobalNum(n)" class="numpad-btn">{{ n }}</button>
                 <button @click="inputGlobalNum('C')" class="numpad-btn btn-c">C</button>
                 <button @click="inputGlobalNum(0)" class="numpad-btn">0</button>
+                <button @click="inputGlobalNum('.')" class="numpad-btn">.</button>
                 <button @click="inputGlobalNum('Backspace')" class="numpad-btn btn-del">刪除</button>
                 <button @click="inputGlobalNum('-')" class="numpad-btn" style="background: var(--tag-bg);">-</button>
             </div>
@@ -976,6 +987,7 @@
                 const investments = ref([]);
                 const notifications = ref([]);
                 const targetPrices = ref({});
+                const isUpdatingPrices = ref(false);
                 const unreadNotifs = ref(0);
                 
                 const searchQuery = ref('');
@@ -1056,7 +1068,7 @@
                     syncTimeout = setTimeout(() => { syncToCloud(true); }, 2000); 
                 };
 
-                watch([transactions, accounts, fixedExpenses, investments], () => { triggerAutoSync(); }, { deep: true });
+                watch([transactions, accounts, fixedExpenses, investments, targetPrices], () => { triggerAutoSync(); }, { deep: true });
 
                 initDB();
 
@@ -1137,10 +1149,11 @@
 
                     accounts.value.forEach(acc => {
                         if (acc.type === 'credit') {
+                            const creditDetails = getCreditCardDetails(acc, today);
                             if (acc.autoPayAccount && acc.autoPayDate && acc.autoPayDate <= currentDay) {
-                                if (acc.lastProcessedDate !== currentYM && acc.balance < 0) {
+                                if (acc.lastProcessedDate !== currentYM && creditDetails.billed > 0) {
                                     const payAcc = accounts.value.find(a => a.id === acc.autoPayAccount);
-                                    const amountToPay = Math.abs(acc.balance);
+                                    const amountToPay = creditDetails.billed;
                                     if (payAcc) {
                                         if (payAcc.type !== 'thirdparty') payAcc.balance -= amountToPay;
                                         if (acc.type !== 'thirdparty') acc.balance += amountToPay;
@@ -1155,19 +1168,19 @@
                                         newNotifications.push({ 
                                             id: Date.now() + Math.floor(Math.random() * 1000), 
                                             title: '信用卡自動扣款成功',
-                                            message: `已從 ${payAcc.name} 自動扣款至 ${acc.name}，金額 ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(amountToPay)}`, 
+                                            message: `已從 ${payAcc.name} 自動扣款至 ${acc.name}，金額 ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(amountToPay)}；未出帳 ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(creditDetails.unbilled)} 不會扣款。`, 
                                             date: currentYMD 
                                         });
                                     }
                                 }
-                            } else if (!acc.autoPayAccount && acc.dueDate && acc.balance < 0 && acc.lastNotifiedDate !== currentYM) {
+                            } else if (!acc.autoPayAccount && acc.dueDate && creditDetails.billed > 0 && acc.lastNotifiedDate !== currentYM) {
                                 const daysUntilDue = acc.dueDate - currentDay;
                                 if (daysUntilDue >= 0 && daysUntilDue <= 3) {
                                     acc.lastNotifiedDate = currentYM;
                                     newNotifications.push({
                                         id: Date.now() + Math.floor(Math.random() * 1000),
                                         title: '信用卡繳款提醒',
-                                        message: `您的 ${acc.name} 將於 ${acc.dueDate} 日到期，應繳金額為 ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(Math.abs(acc.balance))}，請記得繳款。`,
+                                        message: `您的 ${acc.name} 將於 ${acc.dueDate} 日到期，本期應繳金額為 ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(creditDetails.billed)}，未出帳 ${new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(creditDetails.unbilled)} 不需本期繳款。`,
                                         date: currentYMD
                                     });
                                 }
@@ -1191,13 +1204,35 @@
                 const showGlobalNumpad = ref(false);
                 const globalNumpadValue = ref('');
                 const globalNumpadCallback = ref(null);
-                const openGlobalNumpad = (currentVal, cb) => { globalNumpadValue.value = String(currentVal || ''); globalNumpadCallback.value = cb; showGlobalNumpad.value = true; };
+                const globalNumpadOptions = ref({ decimals: false, decimalPlaces: 0, maxLength: 10, allowNegative: true });
+                const openGlobalNumpad = (currentVal, cb, options = {}) => {
+                    globalNumpadOptions.value = { decimals: false, decimalPlaces: 0, maxLength: 10, allowNegative: true, ...options };
+                    globalNumpadValue.value = String(currentVal || '');
+                    globalNumpadCallback.value = cb;
+                    showGlobalNumpad.value = true;
+                };
                 const inputGlobalNum = (val) => { 
-                    let currentAmount = String(globalNumpadValue.value || ''); 
+                    let currentAmount = String(globalNumpadValue.value || '');
+                    const options = globalNumpadOptions.value;
                     if (val === 'C') { globalNumpadValue.value = ''; } 
                     else if (val === 'Backspace') { globalNumpadValue.value = currentAmount.slice(0, -1); } 
-                    else if (val === '-') { if(currentAmount.startsWith('-')) globalNumpadValue.value = currentAmount.slice(1); else globalNumpadValue.value = '-' + currentAmount; }
-                    else { if (currentAmount.length < 10) { if (currentAmount === '0' && val !== 0) globalNumpadValue.value = String(val); else if (currentAmount === '0' && val === 0) {} else globalNumpadValue.value = currentAmount + String(val); } } 
+                    else if (val === '-') {
+                        if (!options.allowNegative) return;
+                        if(currentAmount.startsWith('-')) globalNumpadValue.value = currentAmount.slice(1);
+                        else globalNumpadValue.value = '-' + currentAmount;
+                    } else if (val === '.') {
+                        if (!options.decimals || currentAmount.includes('.')) return;
+                        globalNumpadValue.value = currentAmount ? currentAmount + '.' : '0.';
+                    } else {
+                        if (currentAmount.length >= options.maxLength) return;
+                        if (options.decimals && currentAmount.includes('.')) {
+                            const decimalPart = currentAmount.split('.')[1] || '';
+                            if (decimalPart.length >= options.decimalPlaces) return;
+                        }
+                        if (currentAmount === '0' && val !== 0) globalNumpadValue.value = String(val);
+                        else if (currentAmount === '0' && val === 0) {}
+                        else globalNumpadValue.value = currentAmount + String(val);
+                    } 
                 };
                 const confirmGlobalNumpad = () => { if (globalNumpadCallback.value) { globalNumpadCallback.value(globalNumpadValue.value); } showGlobalNumpad.value = false; };
 
@@ -1217,9 +1252,132 @@
                 const updateTargetPrice = (targetName, currentPrice) => {
                     openGlobalNumpad(currentPrice || '', (newPrice) => {
                         if(newPrice !== '') {
-                            targetPrices.value = { ...targetPrices.value, [targetName]: Number(newPrice) };
+                            targetPrices.value = { ...targetPrices.value, [targetName]: Number(Number(newPrice).toFixed(2)) };
                         }
-                    });
+                    }, { decimals: true, decimalPlaces: 2, maxLength: 12, allowNegative: false });
+                };
+
+                const formatPrice = (val) => {
+                    const price = Number(val) || 0;
+                    if (!price) return '';
+                    return price.toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                };
+
+                const getQuoteSymbols = (targetName) => {
+                    const raw = String(targetName || '').trim();
+                    if (!raw) return [];
+                    const aliases = { '台積電': '2330.TW', '鴻海': '2317.TW', '聯發科': '2454.TW' };
+                    if (aliases[raw]) return [aliases[raw]];
+                    const symbol = raw.toUpperCase();
+                    if (/^\d{4,6}$/.test(symbol)) return [`${symbol}.TW`, `${symbol}.TWO`, symbol];
+                    return [symbol];
+                };
+
+                const normalizePrice = (val) => {
+                    const price = Number(String(val ?? '').replace(/,/g, '').trim());
+                    if (!price || Number.isNaN(price)) return null;
+                    return Number(price.toFixed(2));
+                };
+
+                const getRowField = (row, fields) => {
+                    for (const field of fields) {
+                        if (row && row[field] !== undefined && row[field] !== null && row[field] !== '') return row[field];
+                    }
+                    return '';
+                };
+
+                const quoteCache = {};
+                const fetchCachedJson = async (url) => {
+                    const cached = quoteCache[url];
+                    if (cached && Date.now() - cached.time < 5 * 60 * 1000) return cached.data;
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error('quote request failed');
+                    const data = await res.json();
+                    quoteCache[url] = { time: Date.now(), data };
+                    return data;
+                };
+
+                const findPriceInRows = (rows, codeFields, priceFields, code) => {
+                    const row = Array.isArray(rows) ? rows.find(item => String(getRowField(item, codeFields)).trim() === code) : null;
+                    if (!row) return null;
+                    return normalizePrice(getRowField(row, priceFields));
+                };
+
+                const fetchTaiwanListedPrice = async (code) => {
+                    const rows = await fetchCachedJson('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL');
+                    const price = findPriceInRows(rows, ['Code', '證券代號', '股票代號'], ['ClosingPrice', '收盤價', '收盤'], code);
+                    if (!price) throw new Error('listed quote missing');
+                    return price;
+                };
+
+                const fetchTaiwanOtcPrice = async (code) => {
+                    const rows = await fetchCachedJson('https://www.tpex.org.tw/openapi/v1/tpex_mainboard_quotes');
+                    const price = findPriceInRows(rows, ['SecuritiesCompanyCode', 'Code', '代號', '證券代號'], ['Close', 'ClosePrice', 'ClosingPrice', '收盤', '收盤價'], code);
+                    if (!price) throw new Error('otc quote missing');
+                    return price;
+                };
+
+                const fetchYahooPrice = async (symbol) => {
+                    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1d&interval=1d`;
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error('quote request failed');
+                    const data = await res.json();
+                    const result = data?.chart?.result?.[0];
+                    const metaPrice = result?.meta?.regularMarketPrice;
+                    const closePrices = result?.indicators?.quote?.[0]?.close || [];
+                    const lastClose = [...closePrices].reverse().find(p => typeof p === 'number' && !Number.isNaN(p));
+                    const price = Number(metaPrice || lastClose);
+                    if (!price) throw new Error('quote price missing');
+                    return Number(price.toFixed(2));
+                };
+
+                const fetchOnlinePrice = async (targetName) => {
+                    const raw = String(targetName || '').trim();
+                    const aliases = { '台積電': '2330', '鴻海': '2317', '聯發科': '2454' };
+                    const code = aliases[raw] || raw;
+                    if (/^\d{4,6}$/.test(code)) {
+                        try { return await fetchTaiwanListedPrice(code); } catch (e) {}
+                        try { return await fetchTaiwanOtcPrice(code); } catch (e) {}
+                    }
+                    for (const symbol of getQuoteSymbols(raw)) {
+                        try { return await fetchYahooPrice(symbol); } catch (e) {}
+                    }
+                    throw new Error('quote not found');
+                };
+
+                const refreshTargetPrice = async (targetName, silent = false) => {
+                    if (!targetName) return false;
+                    isUpdatingPrices.value = true;
+                    try {
+                        const price = await fetchOnlinePrice(targetName);
+                        targetPrices.value = { ...targetPrices.value, [targetName]: price };
+                        if (!silent) alert(`${targetName} 現價已更新為 ${formatPrice(price)}`);
+                        return true;
+                    } catch (e) {
+                        if (!silent) alert(`無法自動取得 ${targetName} 的現價，請改用手動設定`);
+                        return false;
+                    } finally {
+                        isUpdatingPrices.value = false;
+                    }
+                };
+
+                const refreshAllTargetPrices = async () => {
+                    const names = investmentTargets.value.map(t => t.name);
+                    if (names.length === 0) return;
+                    isUpdatingPrices.value = true;
+                    let updated = 0;
+                    try {
+                        for (const name of names) {
+                            try {
+                                const price = await fetchOnlinePrice(name);
+                                targetPrices.value = { ...targetPrices.value, [name]: price };
+                                updated++;
+                            } catch (e) {}
+                        }
+                        alert(updated > 0 ? `已更新 ${updated} 個標的現價` : '目前無法自動取得現價，請稍後再試或手動設定');
+                    } finally {
+                        isUpdatingPrices.value = false;
+                    }
                 };
 
                 const expenseCategories = ['飲食', '交通', '轉帳', '娛樂', '醫療', '家居', '其他', '繳費'];
@@ -1343,40 +1501,57 @@
 
                 const getAccountName = (id) => { const acc = accounts.value.find(a => a.id === id); return acc ? acc.name : '未知帳戶'; };
                 
-                const getCreditCardDetails = (acc) => {
-                    let totalOwed = acc.balance < 0 ? Math.abs(acc.balance) : 0;
-                    if (acc.type !== 'credit' || !acc.closingDate) return { billed: 0, unbilled: totalOwed };
-                    
-                    const today = new Date();
-                    let year = today.getFullYear();
-                    let month = today.getMonth();
-                    let targetDate = parseInt(acc.closingDate);
-                    
-                    if (today.getDate() <= targetDate) {
+                function getCreditClosingDate(acc, referenceDate = new Date()) {
+                    const closingDay = parseInt(acc?.closingDate);
+                    if (!closingDay) return null;
+                    const getClampedDate = (year, month, day) => {
+                        let date = new Date(year, month, day);
+                        if (date.getMonth() !== month) date = new Date(year, month + 1, 0);
+                        return date;
+                    };
+                    let year = referenceDate.getFullYear();
+                    let month = referenceDate.getMonth();
+                    const currentClosingDate = getClampedDate(year, month, closingDay);
+                    if (referenceDate < currentClosingDate) {
                         month -= 1;
                         if (month < 0) { month = 11; year -= 1; }
                     }
-                    
-                    let d = new Date(year, month, targetDate);
-                    if (d.getMonth() !== month) { d = new Date(year, month + 1, 0); }
+                    return getClampedDate(year, month, closingDay);
+                }
+
+                function formatYMD(date) {
                     const pad = (n) => String(n).padStart(2, '0');
-                    const lastClosingDateStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+                    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+                }
+
+                function getCreditCardDetails(acc, referenceDate = new Date()) {
+                    const totalOwed = acc.balance < 0 ? Math.abs(Number(acc.balance) || 0) : 0;
+                    if (acc.type !== 'credit') return { billed: 0, unbilled: 0, totalOwed };
+                    const closingDate = getCreditClosingDate(acc, referenceDate);
+                    if (!closingDate) return { billed: 0, unbilled: totalOwed, totalOwed };
+                    const lastClosingDateStr = formatYMD(closingDate);
                     
                     let unbilled = 0;
                     transactions.value.forEach(tx => {
                         const isTarget = tx.accountId === acc.id || tx.linkedAccountId === acc.id;
                         if (isTarget && tx.date > lastClosingDateStr) {
-                            if (tx.type === 'expense') unbilled += parseInt(tx.amount);
-                            else if (tx.type === 'income') unbilled -= parseInt(tx.amount);
+                            if (tx.type === 'expense') unbilled += Number(tx.amount) || 0;
+                            else if (tx.type === 'income') unbilled -= Number(tx.amount) || 0;
                         }
                     });
                     
                     unbilled = Math.max(0, unbilled);
-                    unbilled = Math.min(unbilled, totalOwed); // 避免溢繳時未出帳大於總應繳
-                    let billed = totalOwed - unbilled;
+                    unbilled = Math.min(unbilled, totalOwed);
+                    const billed = Math.max(0, totalOwed - unbilled);
 
-                    return { billed, unbilled };
-                };
+                    return { billed, unbilled, totalOwed, lastClosingDate: lastClosingDateStr };
+                }
+
+                function getCreditCardDisplayAmount(acc) {
+                    if (acc.balance > 0) return '溢繳 ' + formatCurrency(acc.balance);
+                    const details = getCreditCardDetails(acc);
+                    return '應繳 ' + formatCurrency(details.billed);
+                }
 
                 const totalAssets = computed(() => accounts.value.filter(a => a.type !== 'credit' && a.type !== 'thirdparty').reduce((sum, a) => sum + Number(a.balance), 0));
                 const accountTypeFilter = ref('all');
@@ -1817,7 +1992,7 @@
                         if (addedCount > 0) alert(`已成功匯入 ${addedCount} 筆資料`);
                     } catch (e) { alert('匯入失敗: ' + e.message); }
                 };
-                const clearAllData = () => { if (prompt('輸入 "delete" 以清除所有資料') === 'delete') { transactions.value = []; accounts.value = []; fixedExpenses.value = []; investments.value = []; if (typeof localforage !== 'undefined') { localforage.setItem('v_transactions', []); localforage.setItem('v_accounts', []); localforage.setItem('v_fixedExpenses', []); localforage.setItem('v_investments', []); } alert('資料已清除'); } };
+                const clearAllData = () => { if (prompt('輸入 "delete" 以清除所有資料') === 'delete') { transactions.value = []; accounts.value = []; fixedExpenses.value = []; investments.value = []; targetPrices.value = {}; if (typeof localforage !== 'undefined') { localforage.setItem('v_transactions', []); localforage.setItem('v_accounts', []); localforage.setItem('v_fixedExpenses', []); localforage.setItem('v_investments', []); localforage.setItem('v_targetPrices', {}); } alert('資料已清除'); } };
                 const installPwaApp = async () => {
                     if (!deferredInstallPrompt.value) return;
                     deferredInstallPrompt.value.prompt();
@@ -1844,9 +2019,9 @@ isPrivacyMode, monthlyBudget, showExpenseAnalysis, assetAllocations, accountType
                     editTxId, editAccId, editFixedId, txForm, accForm, transferForm, fixedForm, payFixedState, investForm,
                     exportStartDate, exportEndDate, csvDataType, expenseCategories, incomeCategories,
                     currentMonthTransactions, transferTransactions, filteredTransactions, searchNoResults, monthlyIncome, monthlyExpense, monthlyBalance, groupedTransactions, expenseAnalysis,
-                    investments, sortedInvestments, investmentTargets, investTotalCost, investTotalValue, investTotalUnrealized, investTotalRealized, updateTargetPrice, calcInvestAmount, openAddInvest, saveInvest, deleteInvest, investSelectedYear, investYears,
+                    investments, sortedInvestments, investmentTargets, investTotalCost, investTotalValue, investTotalUnrealized, investTotalRealized, updateTargetPrice, refreshTargetPrice, refreshAllTargetPrices, isUpdatingPrices, formatPrice, calcInvestAmount, openAddInvest, saveInvest, deleteInvest, investSelectedYear, investYears,
                     notifications, unreadNotifs, clearNotifications, searchQuery, googleSyncUrl, googleSheetRange, syncStatus, isSyncing, isDarkMode, syncToCloud, syncFromCloud,
-                    totalAssets, typeLabel, openAddTx, openEditTxOrTransfer, saveTransaction, deleteTransaction, getAccountName, getCreditCardDetails,
+                    totalAssets, typeLabel, openAddTx, openEditTxOrTransfer, saveTransaction, deleteTransaction, getAccountName, getCreditCardDetails, getCreditCardDisplayAmount,
                     openAddAcc, openEditAcc, saveAccount, deleteAccount, openAddTransfer, saveTransfer,
                     openAddFixed, openEditFixed, saveFixedExpense, deleteFixed, openPayModal, executePayFixed,
                     exportCSV, triggerFileInput, handleFileUpload, clearAllData, formatCurrency, inputNum,
