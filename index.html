@@ -1854,143 +1854,198 @@
                 };
                 const triggerFileInput = () => document.getElementById('fileInput').click();
                 const handleFileUpload = (event) => {
-                    const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
-                    reader.onload = (e) => { if (file.name.endsWith('.csv')) importCSV(e.target.result); else alert("請選擇 CSV 檔案"); }; reader.readAsText(file); event.target.value = '';
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        if (file.name.toLowerCase().endsWith('.csv')) importCSV(e.target.result);
+                        else alert("請選擇 CSV 檔案");
+                    };
+                    reader.onerror = () => alert('讀取 CSV 檔案失敗，請重新嘗試');
+                    reader.readAsText(file, 'UTF-8');
+                    event.target.value = '';
                 };
                 const importCSV = (csvText) => {
                     try {
-                        const lines = csvText.split('\n').map(l => l.trim()).filter(l => l); if (lines.length <= 1) return; let addedCount = 0;
+                        const csv = csvText.replace(/^\uFEFF/, '');
+                        const lines = csv.split(/\r?\n/).map(l => l.trim()).filter(l => l);
+                        if (lines.length <= 1) {
+                            alert('CSV 檔案沒有資料列，請檢查是否包含標題與有效資料');
+                            return;
+                        }
+
+                        const parseCsvRow = (line) => {
+                            const values = [];
+                            let current = '';
+                            let inQuotes = false;
+                            for (let i = 0; i < line.length; i++) {
+                                const ch = line[i];
+                                if (inQuotes) {
+                                    if (ch === '"') {
+                                        if (line[i + 1] === '"') { current += '"'; i++; }
+                                        else { inQuotes = false; }
+                                    } else {
+                                        current += ch;
+                                    }
+                                } else {
+                                    if (ch === '"') {
+                                        inQuotes = true;
+                                    } else if (ch === ',') {
+                                        values.push(current);
+                                        current = '';
+                                    } else {
+                                        current += ch;
+                                    }
+                                }
+                            }
+                            values.push(current);
+                            return values;
+                        };
+
+                        const clean = (val) => {
+                            if (val == null) return '';
+                            let cleaned = String(val).trim();
+                            if (cleaned.startsWith("'")) cleaned = cleaned.slice(1);
+                            return cleaned;
+                        };
+
+                        let addedCount = 0;
                         const header = lines[0];
 
-                        if (header.includes('帳戶名稱') && header.includes('目前餘額')) {
-                            // Accounts
-                            for (let i = 1; i < lines.length; i++) {
-                                const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || []; 
-                                const clean = (val) => val ? val.replace(/^"|"$/g, '').replace(/""/g, '"').replace(/^'/, '') : ''; 
-                                if (row.length < 3) continue;
-                                const name = clean(row[0]);
-                                const type = clean(row[1]) || 'wallet';
-                                const balance = parseInt(clean(row[2]).replace(/,/g, '')) || 0;
-                                const creditLimit = parseInt(clean(row[3])?.replace(/,/g, '')) || 0;
-                                const closingDate = parseInt(clean(row[4])) || null;
-                                const dueDate = parseInt(clean(row[5])) || null;
-                                const isInvestAccount = clean(row[6]) === '是';
-                                
-                                if (!name) continue;
-                                accounts.value.push({
-                                    id: Date.now() + i + Math.floor(Math.random()*1000),
-                                    name, type, balance, creditLimit, closingDate, dueDate, isInvestAccount,
-                                    autoPayDate: null, autoPayAccount: null
-                                });
-                                addedCount++;
-                            }
-                        } else if (header.includes('週期') && header.includes('每期金額')) {
-                            // Fixed Expenses
-                            for (let i = 1; i < lines.length; i++) {
-                                const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || []; 
-                                const clean = (val) => val ? val.replace(/^"|"$/g, '').replace(/""/g, '"').replace(/^'/, '') : ''; 
-                                if (row.length < 4) continue;
-                                const name = clean(row[0]);
-                                const type = clean(row[1]) || 'subscription';
-                                const cycle = clean(row[2]) || 'monthly';
-                                const amount = parseInt(clean(row[3]).replace(/,/g, '')) || 0;
-                                const hasTotal = clean(row[4]) === '是';
-                                const totalAmount = parseInt(clean(row[5])?.replace(/,/g, '')) || 0;
-                                const deductionDate = parseInt(clean(row[6])) || 1;
-                                const deductionMonth = parseInt(clean(row[7])) || 1;
+                        const addAccount = (row) => {
+                            const name = clean(row[0]);
+                            const type = clean(row[1]) || 'wallet';
+                            const balance = parseInt(clean(row[2]).replace(/,/g, '')) || 0;
+                            const creditLimit = parseInt(clean(row[3])?.replace(/,/g, '')) || 0;
+                            const closingDate = parseInt(clean(row[4])) || null;
+                            const dueDate = parseInt(clean(row[5])) || null;
+                            const isInvestAccount = clean(row[6]) === '是';
+                            if (!name) return false;
+                            accounts.value.push({
+                                id: Date.now() + Math.floor(Math.random() * 100000),
+                                name, type, balance, creditLimit, closingDate, dueDate, isInvestAccount,
+                                autoPayDate: null, autoPayAccount: null
+                            });
+                            return true;
+                        };
 
-                                if (!name || !amount) continue;
-                                fixedExpenses.value.push({
-                                    id: Date.now() + i + Math.floor(Math.random()*1000),
-                                    name, type, cycle, amount, hasTotal, totalAmount, deductionDate, deductionMonth,
-                                    remainingAmount: totalAmount, autoPayAccountId: null
-                                });
-                                addedCount++;
+                        const addFixedExpense = (row) => {
+                            const name = clean(row[0]);
+                            const type = clean(row[1]) || 'subscription';
+                            const cycle = clean(row[2]) || 'monthly';
+                            const amount = parseInt(clean(row[3]).replace(/,/g, '')) || 0;
+                            const hasTotal = clean(row[4]) === '是';
+                            const totalAmount = parseInt(clean(row[5])?.replace(/,/g, '')) || 0;
+                            const deductionDate = parseInt(clean(row[6])) || 1;
+                            const deductionMonth = parseInt(clean(row[7])) || 1;
+                            if (!name || !amount) return false;
+                            fixedExpenses.value.push({
+                                id: Date.now() + Math.floor(Math.random() * 100000),
+                                name, type, cycle, amount, hasTotal, totalAmount, deductionDate, deductionMonth,
+                                remainingAmount: totalAmount, autoPayAccountId: null
+                            });
+                            return true;
+                        };
+
+                        const addInvestment = (row) => {
+                            const dateStr = clean(row[0]).replace(/\//g, '-');
+                            const type = clean(row[1]) || 'buy';
+                            const target = clean(row[2]);
+                            const price = clean(row[3]);
+                            const shares = clean(row[4]);
+                            const amount = parseInt(clean(row[5]).replace(/,/g, '')) || 0;
+                            const accountName = clean(row[6]);
+                            if (!target || !amount) return false;
+                            const acc = accounts.value.find(a => a.name === accountName) || (accounts.value.length ? accounts.value[0] : null);
+                            const accountId = acc ? acc.id : '';
+                            const dParts = dateStr.split('-');
+                            const formattedDate = dParts.length === 3 ? `${dParts[0]}-${String(dParts[1]).padStart(2, '0')}-${String(dParts[2]).padStart(2, '0')}` : dateStr;
+                            investments.value.push({
+                                id: Date.now() + Math.floor(Math.random() * 100000),
+                                date: formattedDate, type, target, price, shares, amount, accountId
+                            });
+                            if (acc && acc.type !== 'thirdparty') {
+                                if (type === 'buy') acc.balance -= amount;
+                                else if (type === 'sell' || type === 'dividend') acc.balance += amount;
                             }
-                        } else if (header.includes('標的') && header.includes('股數')) {
-                            // Investments
-                            for (let i = 1; i < lines.length; i++) {
-                                const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || []; 
-                                const clean = (val) => val ? val.replace(/^"|"$/g, '').replace(/""/g, '"').replace(/^'/, '') : ''; 
-                                if (row.length < 6) continue;
+                            return true;
+                        };
+
+                        const addTransaction = (row, isNewFormat) => {
+                            if (isNewFormat) {
+                                if (row.length < 6) return false;
                                 const dateStr = clean(row[0]).replace(/\//g, '-');
-                                const type = clean(row[1]) || 'buy';
-                                const target = clean(row[2]);
-                                const price = clean(row[3]);
-                                const shares = clean(row[4]);
-                                const amount = parseInt(clean(row[5]).replace(/,/g, '')) || 0;
-                                const accountName = clean(row[6]);
-
+                                const typeStr = clean(row[1]);
+                                const category = clean(row[2]);
+                                const accountName = clean(row[3]);
+                                let rawAmount = parseInt(clean(row[4]).replace(/,/g, ''));
+                                const note = clean(row[5]);
+                                if (isNaN(rawAmount) || !dateStr) return false;
+                                const type = typeStr.includes('收入') ? 'income' : 'expense';
                                 const acc = accounts.value.find(a => a.name === accountName) || (accounts.value.length ? accounts.value[0] : null);
                                 const accountId = acc ? acc.id : '';
-
-                                if (!target || !amount) continue;
-                                
+                                const amount = Math.abs(rawAmount);
                                 const dParts = dateStr.split('-');
                                 const formattedDate = dParts.length === 3 ? `${dParts[0]}-${String(dParts[1]).padStart(2, '0')}-${String(dParts[2]).padStart(2, '0')}` : dateStr;
-
-                                investments.value.push({
-                                    id: Date.now() + i + Math.floor(Math.random()*1000),
-                                    date: formattedDate, type, target, price, shares, amount, accountId
+                                transactions.value.push({
+                                    id: Date.now() + Math.floor(Math.random() * 100000),
+                                    type, date: formattedDate, category, amount, accountId, note
                                 });
-                                
                                 if (acc && acc.type !== 'thirdparty') {
-                                    if (type === 'buy') acc.balance -= amount;
-                                    else if (type === 'sell' || type === 'dividend') acc.balance += amount;
+                                    if (type === 'expense') acc.balance -= amount;
+                                    else if (type === 'income') acc.balance += amount;
                                 }
-                                addedCount++;
+                                return true;
+                            }
+                            if (row.length < 7) return false;
+                            const year = parseInt(clean(row[0]).replace(/,/g, ''));
+                            const month = parseInt(clean(row[1]));
+                            const day = parseInt(clean(row[2]));
+                            const note = clean(row[5]);
+                            let rawAmount = parseInt(clean(row[6]).replace(/,/g, ''));
+                            if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(rawAmount)) return false;
+                            const type = (clean(row[3]).includes('收入') || rawAmount > 0) ? 'income' : 'expense';
+                            const amount = Math.abs(rawAmount);
+                            const acc = accounts.value.length ? accounts.value[0] : null;
+                            const accountId = acc ? acc.id : '';
+                            transactions.value.push({
+                                id: Date.now() + Math.floor(Math.random() * 100000),
+                                type, date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`, category: clean(row[4]), amount, accountId, note
+                            });
+                            if (acc && acc.type !== 'thirdparty') {
+                                if (type === 'expense') acc.balance -= amount;
+                                else if (type === 'income') acc.balance += amount;
+                            }
+                            return true;
+                        };
+
+                        const isNewFormat = header.includes('日期') && header.includes('帳戶');
+                        if (header.includes('帳戶名稱') && header.includes('目前餘額')) {
+                            for (let i = 1; i < lines.length; i++) {
+                                if (addAccount(parseCsvRow(lines[i]))) addedCount++;
+                            }
+                        } else if (header.includes('週期') && header.includes('每期金額')) {
+                            for (let i = 1; i < lines.length; i++) {
+                                if (addFixedExpense(parseCsvRow(lines[i]))) addedCount++;
+                            }
+                        } else if (header.includes('標的') && header.includes('股數')) {
+                            for (let i = 1; i < lines.length; i++) {
+                                if (addInvestment(parseCsvRow(lines[i]))) addedCount++;
                             }
                         } else {
-                            // Transactions
-                            const isNewFormat = header.includes('日期') && header.includes('帳戶');
                             for (let i = 1; i < lines.length; i++) {
-                                const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || []; 
-                                const clean = (val) => val ? val.replace(/^"|"$/g, '').replace(/""/g, '"').replace(/^'/, '') : ''; 
-                                
-                                if (isNewFormat) {
-                                    if (row.length < 6) continue;
-                                    const dateStr = clean(row[0]).replace(/\//g, '-');
-                                    const typeStr = clean(row[1]);
-                                    const category = clean(row[2]);
-                                    const accountName = clean(row[3]);
-                                    let rawAmount = parseInt(clean(row[4]).replace(/,/g, ''));
-                                    const note = clean(row[5]);
-                                    
-                                    if (isNaN(rawAmount) || !dateStr) continue;
-                                    const type = typeStr.includes('收入') ? 'income' : 'expense';
-                                    const acc = accounts.value.find(a => a.name === accountName) || (accounts.value.length ? accounts.value[0] : null);
-                                    const accountId = acc ? acc.id : '';
-                                    const amount = Math.abs(rawAmount);
-                                    
-                                    const dParts = dateStr.split('-');
-                                    const formattedDate = dParts.length === 3 ? `${dParts[0]}-${String(dParts[1]).padStart(2, '0')}-${String(dParts[2]).padStart(2, '0')}` : dateStr;
-
-                                    transactions.value.push({ id: Date.now() + i + Math.floor(Math.random()*1000), type, date: formattedDate, category, amount, accountId, note });
-                                    if (acc && acc.type !== 'thirdparty') {
-                                        if (type === 'expense') acc.balance -= amount;
-                                        else if (type === 'income') acc.balance += amount;
-                                    }
-                                    addedCount++;
-                                } else {
-                                    if (row.length < 7) continue;
-                                    const year = parseInt(clean(row[0]).replace(/,/g, '')); const month = parseInt(clean(row[1])); const day = parseInt(clean(row[2])); let rawAmount = parseInt(clean(row[6]).replace(/,/g, ''));
-                                    if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(rawAmount)) continue;
-                                    const type = (clean(row[3]).includes('收入') || rawAmount > 0) ? 'income' : 'expense';
-                                    const amount = Math.abs(rawAmount);
-                                    const acc = accounts.value.length ? accounts.value[0] : null;
-                                    const accountId = acc ? acc.id : '';
-
-                                    transactions.value.push({ id: Date.now() + i + Math.floor(Math.random()*1000), type, date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`, category: clean(row[4]), amount, accountId, note: clean(row[5]) });
-                                    if (acc && acc.type !== 'thirdparty') {
-                                        if (type === 'expense') acc.balance -= amount;
-                                        else if (type === 'income') acc.balance += amount;
-                                    }
-                                    addedCount++;
-                                }
+                                if (addTransaction(parseCsvRow(lines[i]), isNewFormat)) addedCount++;
                             }
                         }
-                        if (addedCount > 0) alert(`已成功匯入 ${addedCount} 筆資料`);
-                    } catch (e) { alert('匯入失敗: ' + e.message); }
+
+                        if (addedCount > 0) {
+                            alert(`已成功匯入 ${addedCount} 筆資料`);
+                        } else {
+                            alert('CSV 檔案讀取完成，但沒有匯入任何有效資料，請檢查欄位格式。');
+                        }
+                    } catch (e) {
+                        alert('匯入失敗: ' + e.message);
+                    }
                 };
                 const clearAllData = () => { if (prompt('輸入 "delete" 以清除所有資料') === 'delete') { transactions.value = []; accounts.value = []; fixedExpenses.value = []; investments.value = []; targetPrices.value = {}; if (typeof localforage !== 'undefined') { localforage.setItem('v_transactions', []); localforage.setItem('v_accounts', []); localforage.setItem('v_fixedExpenses', []); localforage.setItem('v_investments', []); localforage.setItem('v_targetPrices', {}); } alert('資料已清除'); } };
                 const installPwaApp = async () => {
