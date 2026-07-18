@@ -1874,7 +1874,7 @@
                             return;
                         }
 
-                        const parseCsvRow = (line) => {
+                        const parseCsvRow = (line, delimiter = ',') => {
                             const values = [];
                             let current = '';
                             let inQuotes = false;
@@ -1890,7 +1890,7 @@
                                 } else {
                                     if (ch === '"') {
                                         inQuotes = true;
-                                    } else if (ch === ',') {
+                                    } else if (ch === delimiter) {
                                         values.push(current);
                                         current = '';
                                     } else {
@@ -2020,21 +2020,22 @@
                         };
 
                         const isNewFormat = header.includes('日期') && header.includes('帳戶');
+                        const delimiter = header.includes('\t') || lines[0].includes('\t') ? '\t' : ',';
                         if (header.includes('帳戶名稱') && header.includes('目前餘額')) {
                             for (let i = 1; i < lines.length; i++) {
-                                if (addAccount(parseCsvRow(lines[i]))) addedCount++;
+                                if (addAccount(parseCsvRow(lines[i], delimiter))) addedCount++;
                             }
                         } else if (header.includes('週期') && header.includes('每期金額')) {
                             for (let i = 1; i < lines.length; i++) {
-                                if (addFixedExpense(parseCsvRow(lines[i]))) addedCount++;
+                                if (addFixedExpense(parseCsvRow(lines[i], delimiter))) addedCount++;
                             }
                         } else if (header.includes('標的') && header.includes('股數')) {
                             for (let i = 1; i < lines.length; i++) {
-                                if (addInvestment(parseCsvRow(lines[i]))) addedCount++;
+                                if (addInvestment(parseCsvRow(lines[i], delimiter))) addedCount++;
                             }
                         } else {
                             for (let i = 1; i < lines.length; i++) {
-                                if (addTransaction(parseCsvRow(lines[i]), isNewFormat)) addedCount++;
+                                if (addTransaction(parseCsvRow(lines[i], delimiter), isNewFormat)) addedCount++;
                             }
                         }
 
