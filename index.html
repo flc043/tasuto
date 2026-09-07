@@ -1735,45 +1735,141 @@
                     if (!confirm('確定要刪除這筆投資紀錄嗎？')) return; const idx = investments.value.findIndex(i => i.id === id);
                     if (idx > -1) { const inv = investments.value[idx]; const acc = accounts.value.find(a => a.id === inv.accountId); if (acc && acc.type !== 'thirdparty') { if (inv.type === 'buy') acc.balance += inv.amount; else acc.balance -= inv.amount; } investments.value.splice(idx, 1); }
                 };
+                const isSameData = (a, b) => {
+    return JSON.stringify(a) === JSON.stringify(b);
+};
+
+const buildSyncOperations = (localData, cloudData) => {
+    const collections = [
+        'accounts',
+        'transactions',
+        'investments',
+        'fixedExpenses'
+    ];
+
+    const operations = [];
+
+    collections.forEach((collection) => {
+        const localItems = localData[collection] || [];
+        const cloudItems = cloudData[collection] || [];
+
+        const localById = new Map(
+            localItems
+                .filter(item => item.id !== undefined && item.id !== null)
+                .map(item => [String(item.id), item])
+        );
+
+        const cloudById = new Map(
+            cloudItems
+                .filter(item => item.id !== undefined && item.id !== null)
+                .map(item => [String(item.id), item])
+        );
+
+        // 雲端沒有、本機有：新增
+        localById.forEach((localItem, id) => {
+            const cloudItem = cloudById.get(id);
+
+            if (!cloudItem) {
+                operations.push({
+                    action: 'create',
+                    collection: collection,
+                    item: localItem
+                });
+                return;
+            }
+
+            // 兩端都有、內容不同：編輯
+            if (!isSameData(localItem, cloudItem)) {
+                operations.push({
+                    action: 'update',
+                    collection: collection,
+                    id: id,
+                    item: localItem
+                });
+            }
+        });
+
+        // 雲端有、本機沒有：刪除
+        cloudById.forEach((cloudItem, id) => {
+            if (!localById.has(id)) {
+                operations.push({
+                    action: 'delete',
+                    collection: collection,
+                    id: id
+                });
+            }
+        });
+    });
+
+    return operations;
+};
 
                 const syncToCloud = async (isSilent = false) => {
-                    if (!googleSyncUrl.value) { if (!isSilent) alert('請先設定 Google Apps Script 網址'); return; }
-                    isSyncing.value = true;
-                    syncStatus.value = '上傳中...';
-                    try {
-                        const payload = {
-                            transactions: transactions.value,
-                            accounts: accounts.value,
-                            fixedExpenses: fixedExpenses.value,
-                            investments: investments.value,
-                            targetPrices: targetPrices.value,
-                            range: googleSheetRange.value || ''
-                        };
-                        const formBody = new URLSearchParams({
-                            payload: JSON.stringify(payload)
-                        }).toString();
-                        const res = await fetch(googleSyncUrl.value.trim(), {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-                            body: formBody
-                        });
-                        const result = await res.json();
-                        if (!isSilent) {
-                            if (result.status === 'success') {
-                                syncStatus.value = '上傳成功';
-                                alert('資料已成功同步到雲端');
-                            } else {
-                                syncStatus.value = '上傳失敗：伺服器回傳錯誤';
-                                alert('同步失敗：' + (result.message || '未知錯誤'));
-                            }
-                        }
-                    } catch (e) {
-                        syncStatus.value = '上傳失敗：連線或格式錯誤';
-                        if (!isSilent) alert('同步失敗，請稍後再試');
-                    } finally {
-                        isSyncing.value = false;
-                    }
-                };
+    if (!googleSyncUrl.value) {
+        if (!isSilent) alert('請先設定 Google Apps Script 網址');
+        return;
+    }
+
+    isSyncing.value = true;
+    syncStatus.value = '同步中...';
+
+    try {
+        const scriptUrl = googleSyncUrl.value.trim();
+
+        // 先取得雲端 RawData，與目前本機資料比較
+        const cloudResponse = await fetch(scriptUrl);
+        const cloudData = await cloudResponse.json();
+
+        const localData = {
+            transactions: transactions.value,
+            accounts: accounts.value,
+            fixedExpenses: fixedExpenses.value,
+            investments: investments.value
+        };
+
+        const operations = buildSyncOperations(localData, cloudData);
+
+        // 沒有任何差異，不送 POST
+        if (operations.length === 0) {
+            syncStatus.value = '已同步';
+            if (!isSilent) alert('沒有需要同步的變更');
+            return;
+        }
+
+        const formBody = new URLSearchParams({
+            payload: JSON.stringify({ operations: operations })
+        }).toString();
+
+        const response = await fetch(scriptUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+            },
+            body: formBody
+        });
+
+        const result = await response.json();
+
+        if (result.status !== 'success') {
+            throw new Error(result.message || '同步失敗');
+        }
+
+        syncStatus.value = '已同步';
+
+        if (!isSilent) {
+            alert('同步完成，共處理 ' + operations.length + ' 筆變更');
+        }
+    } catch (error) {
+        console.error('同步失敗：', error);
+        syncStatus.value = '同步失敗';
+
+        if (!isSilent) {
+            alert('同步失敗：' + error.message);
+        }
+    } finally {
+        isSyncing.value = false;
+    }
+};
                 const syncFromCloud = async () => {
                     if (!googleSyncUrl.value) return alert('請先設定雲端同步網址');
                     if (!confirm('下載雲端資料會覆蓋目前本機資料，確定要繼續嗎？')) return;
